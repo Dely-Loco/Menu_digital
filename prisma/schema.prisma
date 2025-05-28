@@ -1,57 +1,53 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model Categoria {
-  id        Int      @id @default(autoincrement())
-  nombre    String   @db.VarChar(100)
-  slug      String   @unique @db.VarChar(100)
-  icono     String?  @db.VarChar(50)
-  createdAt DateTime @default(now()) @map("created_at")
-  
-  productos Producto[]
-  
-  @@map("categorias")
+  id          Int       @id @default(autoincrement())
+  nombre      String    // name en el frontend
+  slug        String    @unique
+  icono       String?   // icon en el frontend
+  imagen      String?   // image en el frontend
+  descripcion String?   // description en el frontend
+  color       String?   // color para el frontend
+  esPopular   Boolean   @default(false) // isPopular en el frontend
+  orden       Int       @default(0)
+  activa      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  productos   Producto[]
 }
 
 model Producto {
-  id             Int      @id @default(autoincrement())
-  nombre         String   @db.VarChar(200)
-  descripcion    String?  @db.Text
-  precio         Decimal  @db.Decimal(10, 2)
-  precioAnterior Decimal? @db.Decimal(10, 2) @map("precio_anterior")
-  categoriaId    Int      @map("categoria_id")
-  destacado      Boolean  @default(false)
-  stock          Int      @default(0)
-  slug           String   @unique @db.VarChar(200)
-  marca          String?  @db.VarChar(100)
-  rating         Float    @default(0)
-  reviewsCount   Int      @default(0) @map("reviews_count")
-  createdAt      DateTime @default(now()) @map("created_at")
-  
-  categoria Categoria @relation(fields: [categoriaId], references: [id])
-  imagenes  ImagenProducto[]
-  
-  @@map("productos")
+  id                Int             @id @default(autoincrement())
+  nombre            String
+  descripcion     String?
+  precio            Decimal
+  precioAnterior  Decimal?
+  categoriaId     Int?          // Ahora es opcional
+  destacado       Boolean         @default(false)
+  stock           Int             @default(0)
+  slug            String          @unique
+  marca           String?
+  rating          Float           @default(0)
+  reviewsCount    Int             @default(0)
+  createdAt       DateTime        @default(now())
+
+  categoria       Categoria?      @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  imagenes        ImagenProducto[]
 }
 
 model ImagenProducto {
-  id         Int     @id @default(autoincrement())
-  productoId Int     @map("producto_id")
-  url        String  @db.VarChar(500)
-  altText    String? @db.VarChar(200) @map("alt_text")
-  orden      Int     @default(0)
-  principal  Boolean @default(false)
-  
-  producto Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
-  
-  @@map("imagenes_productos")
+  id         Int      @id @default(autoincrement())
+  productoId Int
+  url        String
+  altText    String?
+  orden      Int      @default(0)
+  principal  Boolean  @default(false)
+
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
 }

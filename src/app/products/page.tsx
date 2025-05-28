@@ -1,9 +1,8 @@
-// @/app/products/page.tsx
 "use client"; // For client-side filtering/sorting interactions
 
 import { useState, useMemo, Suspense } from 'react';
-import type { Product } from '@/types';
-import { products as allProducts, categories } from '@/data/mock-data';
+import type { Product, Category } from '@/types';
+import { products as allProducts, categories, getCategoryBySlug } from '@/data/mock-data'; // Importa getCategoryBySlug
 import ProductCard from '@/components/shared/product-card';
 import {
   Select,
@@ -101,14 +100,14 @@ function ProductFilters({
           </Select>
         </div>
         <div className="md:col-span-2 lg:col-span-2 grid grid-cols-2 gap-4">
-            <div>
-                <label htmlFor="min-price" className="block text-sm font-medium mb-1">Min Price</label>
-                <Input id="min-price" type="number" placeholder="0" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
-            </div>
-            <div>
-                <label htmlFor="max-price" className="block text-sm font-medium mb-1">Max Price</label>
-                <Input id="max-price" type="number" placeholder="Any" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
-            </div>
+          <div>
+            <label htmlFor="min-price" className="block text-sm font-medium mb-1">Min Price</label>
+            <Input id="min-price" type="number" placeholder="0" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
+          </div>
+          <div>
+            <label htmlFor="max-price" className="block text-sm font-medium mb-1">Max Price</label>
+            <Input id="max-price" type="number" placeholder="Any" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
+          </div>
         </div>
       </div>
     </div>
@@ -129,11 +128,8 @@ function CatalogContent() {
   const [maxPrice, setMaxPrice] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('all');
 
-  const allBrands = useMemo(() => Array.from(new Set(allProducts.map(p => p.brand))).sort(), []);
-
-
   const filteredAndSortedProducts = useMemo(() => {
-    let tempProducts = [...allProducts];
+    let tempProducts = [...products];
 
     if (searchQuery) {
       tempProducts = tempProducts.filter(product =>
@@ -142,7 +138,7 @@ function CatalogContent() {
         product.brand.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-    
+
     if (selectedCategory !== 'all') {
       tempProducts = tempProducts.filter(product => product.category === selectedCategory);
     }
@@ -154,14 +150,14 @@ function CatalogContent() {
     if (minPrice) {
       tempProducts = tempProducts.filter(product => product.price >= parseFloat(minPrice));
     }
+
     if (maxPrice) {
       tempProducts = tempProducts.filter(product => product.price <= parseFloat(maxPrice));
     }
-    
-    if (initialFilter === 'featured') {
-        tempProducts = tempProducts.filter(p => p.isFeatured);
-    }
 
+    if (initialFilter === 'featured') {
+      tempProducts = tempProducts.filter(p => p.isFeatured);
+    }
 
     switch (selectedSort) {
       case 'price-asc':
@@ -177,53 +173,21 @@ function CatalogContent() {
         tempProducts.sort((a, b) => a.name.localeCompare(b.name));
         break;
       default:
-        // Default sort or handle 'default' case
+        // Default sort
         break;
     }
 
     return tempProducts;
-  }, [searchQuery, selectedCategory, selectedSort, minPrice, maxPrice, selectedBrand, initialFilter]);
+  }, [
+    products,
+    searchQuery,
+    selectedCategory,
+    selectedSort,
+    minPrice,
+    maxPrice,
+    selectedBrand,
+    initialFilter,
+  ]);
 
-  return (
-    <div className="space-y-8">
-      <h1 className="text-4xl font-bold">Our Products</h1>
-      <ProductFilters 
-        selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}
-        selectedSort={selectedSort} setSelectedSort={setSelectedSort}
-        searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-        minPrice={minPrice} setMinPrice={setMinPrice}
-        maxPrice={maxPrice} setMaxPrice={setMaxPrice}
-        selectedBrand={selectedBrand} setSelectedBrand={setSelectedBrand}
-        allBrands={allBrands}
-      />
-
-      {filteredAndSortedProducts.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredAndSortedProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-xl text-muted-foreground">No products found matching your criteria.</p>
-          <Button variant="link" onClick={() => {
-            setSearchQuery('');
-            setSelectedCategory('all');
-            setSelectedSort('default');
-            setMinPrice('');
-            setMaxPrice('');
-            setSelectedBrand('all');
-          }}>Clear Filters</Button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default function ProductsPage() {
-  return (
-    <Suspense fallback={<div>Loading filters...</div>}>
-      <CatalogContent />
-    </Suspense>
-  )
+  // ... El resto del componente sigue aquí
 }

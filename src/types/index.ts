@@ -10,7 +10,7 @@ export interface Product {
   price: number;
   originalPrice?: number;
   discountPercentage?: number; // Calculated discount
-  category: string; // Category slug
+category: string | Category | undefined;
   brand: string;
   images: string[];
   rating: number;
@@ -239,4 +239,13 @@ export interface Banner {
   position: 'hero' | 'category' | 'footer' | 'popup';
   isActive: boolean;
   priority: number; // Display order
+}
+
+export interface ProductImage {
+  id: string;
+  productId: string;
+  url: string;
+  altText?: string;
+  order: number;
+  isPrimary: boolean;
 }

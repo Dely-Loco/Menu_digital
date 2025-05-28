@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Star, ShoppingCart, Heart, Eye } from 'lucide-react';
-import { Product } from '@/types';
+import type { Product, Category } from '@/types'; // Import Category type
 import Image from 'next/image';
 
 // Props interface para el componente slider
@@ -39,6 +39,7 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
   const [currentItemsPerView, setCurrentItemsPerView] = useState<number>(itemsPerView.desktop);
 
   // Productos por defecto mejorados
+  // Productos por defecto mejorados
   const defaultProducts: Product[] = useMemo(() => [
     {
       id: "1",
@@ -50,7 +51,11 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
       price: 89.99,
       originalPrice: 129.99,
       discountPercentage: 31,
-      category: "audio",
+      category: {
+        id: "audio-1", // Añade un ID único para la categoría "audio"
+        slug: "audio",
+        name: "Audio"
+      },
       brand: "TechSound",
       images: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop"],
       rating: 4.5,
@@ -72,7 +77,11 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
       price: 199.99,
       originalPrice: 249.99,
       discountPercentage: 20,
-      category: "wearables",
+      category: {
+        id: "wearables-2", // Añade un ID único para la categoría "wearables"
+        slug: "wearables",
+        name: "Wearables"
+      },
       brand: "FitTech",
       images: ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop"],
       rating: 4.8,
@@ -92,7 +101,11 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
       shortDescription: "Sonido envolvente portátil",
       technicalSpec: "Bluetooth 5.0, 20W, IPX7, 12h batería",
       price: 59.99,
-      category: "audio",
+      category: {
+        id: "audio-3", // Añade un ID único para la categoría "audio"
+        slug: "audio",
+        name: "Audio"
+      },
       brand: "SoundWave",
       images: ["https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=400&fit=crop"],
       rating: 4.3,
@@ -113,7 +126,11 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
       price: 149.99,
       originalPrice: 199.99,
       discountPercentage: 25,
-      category: "gaming",
+      category: {
+        id: "gaming-4", // Añade un ID único para la categoría "gaming"
+        slug: "gaming",
+        name: "Gaming"
+      },
       brand: "GamePro",
       images: ["https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=400&h=400&fit=crop"],
       rating: 4.7,
@@ -132,7 +149,11 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
       shortDescription: "Video 4K profesional",
       technicalSpec: "4K@30fps, Autoenfoque, Micrófono estéreo",
       price: 79.99,
-      category: "tech",
+      category: {
+        id: "tech-5", // Añade un ID único para la categoría "tech"
+        slug: "tech",
+        name: "Tech"
+      },
       brand: "VisionTech",
       images: ["https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400&h=400&fit=crop"],
       rating: 4.4,
@@ -144,6 +165,7 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
       warranty: "2 años"
     }
   ], []);
+  
 
   // Usar productos de props o productos por defecto
   const products = propProducts || defaultProducts;
@@ -360,8 +382,10 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
                     {/* Brand & Category */}
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-blue-600 font-medium">{product.brand}</span>
-                      <span className="text-xs text-gray-500 capitalize">{product.category}</span>
-                    </div>
+<span className="text-xs text-gray-500 capitalize">
+  {typeof product.category === 'string' ? product.category : product.category?.name}
+</span>
+</div>
 
                     {/* Product Name */}
                     <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">

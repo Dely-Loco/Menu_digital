@@ -8,6 +8,9 @@ import type { Category } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
+// Cambiar la importación
+import { mapCategorias } from '@/lib/mappers';
+import { cn } from '@/lib/utils';
 
 interface CategorySectionProps {
   categories: Category[];

@@ -3,11 +3,11 @@ import type { Product, Category, BlogPost } from '@/types';
 
 // Enhanced Categories with more visual and marketing data
 export const categories: Category[] = [
-  { 
-    id: '1', 
-    name: 'Gadgets', 
-    slug: 'gadgets', 
-    image: 'https://placehold.co/400x300.png', 
+  {
+    id: '1',
+    name: 'Gadgets',
+    slug: 'gadgets',
+    image: 'https://placehold.co/400x300.png',
     description: 'Cutting-edge gadgets to simplify your life.',
     dataAiHint: 'gadgets technology',
     icon: '📱',
@@ -15,11 +15,11 @@ export const categories: Category[] = [
     productsCount: 15,
     isPopular: true
   },
-  { 
-    id: '2', 
-    name: 'Smart Home', 
-    slug: 'smart-home', 
-    image: 'https://placehold.co/400x300.png', 
+  {
+    id: '2',
+    name: 'Smart Home',
+    slug: 'smart-home',
+    image: 'https://placehold.co/400x300.png',
     description: 'Automate and control your home with smart devices.',
     dataAiHint: 'smart home',
     icon: '🏠',
@@ -27,11 +27,11 @@ export const categories: Category[] = [
     productsCount: 28,
     isPopular: true
   },
-  { 
-    id: '3', 
-    name: 'Accessories', 
-    slug: 'accessories', 
-    image: 'https://placehold.co/400x300.png', 
+  {
+    id: '3',
+    name: 'Accessories',
+    slug: 'accessories',
+    image: 'https://placehold.co/400x300.png',
     description: 'Essential accessories for your tech gear.',
     dataAiHint: 'tech accessories',
     icon: '🔌',
@@ -39,11 +39,11 @@ export const categories: Category[] = [
     productsCount: 42,
     isPopular: false
   },
-  { 
-    id: '4', 
-    name: 'Wearables', 
-    slug: 'wearables', 
-    image: 'https://placehold.co/400x300.png', 
+  {
+    id: '4',
+    name: 'Wearables',
+    slug: 'wearables',
+    image: 'https://placehold.co/400x300.png',
     description: 'Stay connected and track your fitness with our wearables.',
     dataAiHint: 'smartwatch fitness',
     icon: '⌚',
@@ -51,11 +51,11 @@ export const categories: Category[] = [
     productsCount: 18,
     isPopular: true
   },
-  { 
-    id: '5', 
-    name: 'Office Tech', 
-    slug: 'office-tech', 
-    image: 'https://placehold.co/400x300.png', 
+  {
+    id: '5',
+    name: 'Office Tech',
+    slug: 'office-tech',
+    image: 'https://placehold.co/400x300.png',
     description: 'Boost productivity with our range of office technology.',
     dataAiHint: 'office technology',
     icon: '💻',
@@ -63,11 +63,11 @@ export const categories: Category[] = [
     productsCount: 33,
     isPopular: false
   },
-  { 
-    id: '6', 
-    name: 'Gaming', 
-    slug: 'gaming', 
-    image: 'https://placehold.co/400x300.png', 
+  {
+    id: '6',
+    name: 'Gaming',
+    slug: 'gaming',
+    image: 'https://placehold.co/400x300.png',
     description: 'Level up your gaming experience with pro gear.',
     dataAiHint: 'gaming gear',
     icon: '🎮',
@@ -75,11 +75,11 @@ export const categories: Category[] = [
     productsCount: 24,
     isPopular: true
   },
-  { 
-    id: '7', 
-    name: 'Audio', 
-    slug: 'audio', 
-    image: 'https://placehold.co/400x300.png', 
+  {
+    id: '7',
+    name: 'Audio',
+    slug: 'audio',
+    image: 'https://placehold.co/400x300.png',
     description: 'Premium audio equipment for audiophiles.',
     dataAiHint: 'premium audio',
     icon: '🎧',

@@ -1,45 +1,89 @@
-// @/app/cart/page.tsx
 "use client";
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import type { CartItem } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Trash2, Minus, Plus, ShoppingBag } from 'lucide-react';
-import { products } from '@/data/mock-data'; // For sample data
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { ShoppingBag } from 'lucide-react';
+import { products } from '@/data/mock-data';
+import type { CartItem } from '@/types';
+import CartItemRow from './CartItemRow'; // Ajusta la ruta según dónde guardes el archivo
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
-// Mock cart functionality using local state for now
-const initialCartItems: CartItem[] = products.slice(0, 2).map(p => ({ ...p, quantity: Math.floor(Math.random() * 3) + 1 }));
+// Helper para cargar el carrito de localStorage
+const loadCartFromStorage = (): CartItem[] => {
+  if (typeof window === 'undefined') return [];
+  const stored = localStorage.getItem('cart');
+  if (!stored) return [];
+  try {
+    const parsed = JSON.parse(stored);
+    // Podrías agregar validaciones aquí si quieres
+    return parsed;
+  } catch {
+    return [];
+  }
+};
 
+// Helper para guardar el carrito en localStorage
+const saveCartToStorage = (cartItems: CartItem[]) => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('cart', JSON.stringify(cartItems));
+};
+
+// Cart inicial (mock) solo si no hay nada en localStorage
+const initialCartItems: CartItem[] = products.slice(0, 2).map(p => ({
+  ...p,
+  quantity: Math.floor(Math.random() * 3) + 1,
+  addedAt: new Date().toISOString(),
+
+}));
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Simulate loading cart items, e.g., from localStorage or API in a real app
-    // For this example, using mock data directly after mount
-    setCartItems(initialCartItems);
+    // Carga carrito de localStorage o usa inicial
+    const storedCart = loadCartFromStorage();
+    if (storedCart.length > 0) {
+      setCartItems(storedCart);
+    } else {
+      setCartItems(initialCartItems);
+      saveCartToStorage(initialCartItems);
+    }
     setMounted(true);
   }, []);
 
+  // Actualiza cantidad y guarda
   const updateQuantity = (id: string, quantity: number) => {
-    if (quantity < 1) return; // Or remove item if quantity is 0
-    setCartItems(prevItems =>
-      prevItems.map(item => (item.id === id ? { ...item, quantity } : item))
-    );
+    if (quantity < 1) {
+      removeItem(id);
+      return;
+    }
+    setCartItems(prevItems => {
+      const updated = prevItems.map(item => (item.id === id ? { ...item, quantity } : item));
+      saveCartToStorage(updated);
+      return updated;
+    });
   };
 
+  // Elimina item y guarda
   const removeItem = (id: string) => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+    setCartItems(prevItems => {
+      const updated = prevItems.filter(item => item.id !== id);
+      saveCartToStorage(updated);
+      return updated;
+    });
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = cartItems.length > 0 ? 5.00 : 0; // Example shipping cost
+  const shipping = cartItems.length > 0 ? 5.0 : 0;
   const total = subtotal + shipping;
 
   if (!mounted) {
@@ -69,44 +113,12 @@ export default function CartPage() {
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           {cartItems.map((item) => (
-            <Card key={item.id} className="flex flex-col sm:flex-row items-center gap-4 p-4 shadow-sm">
-              <Link href={`/products/${item.slug}`} className="block shrink-0">
-                <Image
-                  src={item.images[0]}
-                  alt={item.name}
-                  width={100}
-                  height={100}
-                  className="rounded-md object-cover w-24 h-24 sm:w-28 sm:h-28"
-                  data-ai-hint={item.dataAiHint || 'product image'}
-                />
-              </Link>
-              <div className="flex-grow space-y-1 text-center sm:text-left">
-                <Link href={`/products/${item.slug}`} className="block">
-                  <h2 className="text-lg font-semibold hover:text-primary">{item.name}</h2>
-                </Link>
-                <p className="text-sm text-muted-foreground">{item.brand}</p>
-                <p className="text-md font-medium">${item.price.toFixed(2)}</p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <Input
-                  type="number"
-                  value={item.quantity}
-                  onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}
-                  min="1"
-                  className="w-16 h-9 text-center"
-                />
-                <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              <p className="text-lg font-semibold w-20 text-center sm:text-right">${(item.price * item.quantity).toFixed(2)}</p>
-              <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)} className="text-destructive hover:text-destructive/80">
-                <Trash2 className="h-5 w-5" />
-              </Button>
-            </Card>
+            <CartItemRow
+              key={item.id}
+              item={item}
+              updateQuantity={updateQuantity}
+              removeItem={removeItem}
+            />
           ))}
         </div>
 
@@ -131,7 +143,11 @@ export default function CartPage() {
               </div>
             </CardContent>
             <CardFooter className="flex-col space-y-3">
-              <Button asChild size="lg" className="w-full bg-gradient-to-r from-[#FF4500] to-[#FF8C00] hover:opacity-90 text-primary-foreground">
+              <Button
+                asChild
+                size="lg"
+                className="w-full bg-gradient-to-r from-[#FF4500] to-[#FF8C00] hover:opacity-90 text-primary-foreground"
+              >
                 <Link href="/checkout">Proceed to Checkout</Link>
               </Button>
               <Button asChild variant="link" className="text-primary">
