@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -9,35 +10,38 @@ datasource db {
 
 model Categoria {
   id          Int       @id @default(autoincrement())
-  nombre      String    // name en el frontend
+  nombre      String
   slug        String    @unique
-  icono       String?   // icon en el frontend
-  imagen      String?   // image en el frontend
-  descripcion String?   // description en el frontend
-  color       String?   // color para el frontend
-  esPopular   Boolean   @default(false) // isPopular en el frontend
+  icono       String?
+  imagen      String?
+  descripcion String?
+  color       String?
+  esPopular   Boolean   @default(false) // 🔧 CAMPO NUEVO
   orden       Int       @default(0)
   activa      Boolean   @default(true)
   createdAt   DateTime  @default(now())
+
   productos   Producto[]
 }
 
 model Producto {
-  id                Int             @id @default(autoincrement())
-  nombre            String
+  id              Int              @id @default(autoincrement())
+  nombre          String
   descripcion     String?
-  precio            Decimal
+  precio          Decimal
   precioAnterior  Decimal?
-  categoriaId     Int?          // Ahora es opcional
-  destacado       Boolean         @default(false)
-  stock           Int             @default(0)
-  slug            String          @unique
+  categoriaId     Int?             // Ahora es opcional
+  destacado       Boolean          @default(false)
+  esNuevo         Boolean          @default(false) // 🔧 CAMPO NUEVO
+  masVendido      Boolean          @default(false) // 🔧 CAMPO NUEVO
+  stock           Int              @default(0)
+  slug            String           @unique
   marca           String?
-  rating          Float           @default(0)
-  reviewsCount    Int             @default(0)
-  createdAt       DateTime        @default(now())
+  rating          Float            @default(0)
+  reviewsCount    Int              @default(0)
+  createdAt       DateTime         @default(now())
 
-  categoria       Categoria?      @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  categoria       Categoria?       @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
   imagenes        ImagenProducto[]
 }
 

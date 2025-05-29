@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Categoria {
+  id          Int        @id @default(autoincrement())
+  nombre      String // name en el frontend
+  slug        String     @unique
+  icono       String? // icon en el frontend
+  imagen      String? // image en el frontend
+  descripcion String? // description en el frontend
+  color       String? // color para el frontend
+  esPopular   Boolean    @default(false) // isPopular en el frontend
+  orden       Int        @default(0)
+  activa      Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  productos   Producto[]
+}
+
+model Producto {
+  id             Int      @id @default(autoincrement())
+  nombre         String
+  descripcion    String?
+  precio         Decimal
+  precioAnterior Decimal?
+  categoriaId    Int? // Ahora es opcional
+  destacado      Boolean  @default(false)
+  stock          Int      @default(0)
+  slug           String   @unique
+  marca          String?
+  rating         Float    @default(0)
+  reviewsCount   Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  categoria Categoria?       @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  imagenes  ImagenProducto[]
+}
+
+model ImagenProducto {
+  id         Int     @id @default(autoincrement())
+  productoId Int
+  url        String
+  altText    String?
+  orden      Int     @default(0)
+  principal  Boolean @default(false)
+
+  producto Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+}

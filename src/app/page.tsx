@@ -1,4 +1,4 @@
-'use client';
+'use client'; // Este componente se renderiza en el cliente (necesario para usar hooks como useState y useEffect)
 
 import FeaturedProductsSlider from '@/components/home/featured-products-slider';
 import CategorySection from '@/components/home/category-section';
@@ -7,45 +7,48 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { ChevronDown, Sparkles, Zap, Shield, Star } from 'lucide-react';
+import { ChevronDown, Sparkles, Zap, Shield, Star } from 'lucide-react'; // Íconos SVG
 
 export default function HomePage() {
-  // Obtener productos destacados desde los datos mock
+  // Obtener productos destacados desde datos simulados (mock)
   const featuredProducts = getFeaturedProducts();
   
-  // Estados para controlar el scroll parallax y animaciones
+  // Estado para controlar la posición vertical del scroll
   const [scrollY, setScrollY] = useState(0);
+  
+  // Estado para mostrar animaciones al montar el componente
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Función para actualizar la posición del scroll (efecto parallax)
+    // Escuchar el scroll para actualizar scrollY (para parallax)
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
     
-    // Activar animaciones después de 100ms del montaje del componente
+    // Activar visibilidad (por ejemplo, animaciones) después de 100ms
     setTimeout(() => setIsVisible(true), 100);
     
-    // Limpiar el event listener al desmontar el componente
+    // Limpiar el event listener cuando el componente se desmonta
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
     <div className="relative">
-      {/* === SECCIÓN HERO - PANTALLA COMPLETA === */}
+      {/* === SECCIÓN HERO A PANTALLA COMPLETA === */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden -mx-4 md:-mx-6 lg:-mx-8">
         
-        {/* Fondo con efecto parallax - se mueve más lento que el scroll */}
+        {/* Fondo con efecto parallax (se mueve más lento que el scroll) */}
         <div 
           className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-black"
           style={{
-            transform: `translateY(${scrollY * 0.5}px)`, // Efecto parallax
+            transform: `translateY(${scrollY * 0.5}px)`, // Parallax: el fondo se mueve a la mitad del scroll
           }}
         />
-        
-        {/* Patrón geométrico animado de fondo */}
+
+        {/* SVG animado: patrón geométrico con círculos y líneas */}
         <div className="absolute inset-0 opacity-20">
           <svg className="absolute inset-0 w-full h-full animate-pulse" viewBox="0 0 1200 800" fill="none">
-            {/* Definición de gradientes radiales para los efectos de brillo */}
+            
+            {/* === Gradientes radiales para efectos de brillo en los círculos === */}
             <defs>
               <radialGradient id="glow1" cx="50%" cy="50%" r="50%">
                 <stop offset="0%" stopColor="#FF4500" stopOpacity="0.6" />
@@ -59,17 +62,17 @@ export default function HomePage() {
               </radialGradient>
             </defs>
             
-            {/* Círculos flotantes con animación bounce escalonada */}
+            {/* === Círculos animados (efecto de rebote y brillo) === */}
             <circle cx="200" cy="150" r="100" fill="url(#glow1)" className="animate-bounce" style={{ animationDelay: '0s', animationDuration: '4s' }} />
             <circle cx="800" cy="250" r="80" fill="url(#glow2)" className="animate-bounce" style={{ animationDelay: '1s', animationDuration: '3s' }} />
             <circle cx="400" cy="400" r="60" fill="url(#glow1)" className="animate-bounce" style={{ animationDelay: '2s', animationDuration: '5s' }} />
             <circle cx="1000" cy="500" r="120" fill="url(#glow2)" className="animate-bounce" style={{ animationDelay: '0.5s', animationDuration: '3.5s' }} />
             
-            {/* Líneas conectoras animadas entre los círculos */}
+            {/* === Líneas conectoras animadas entre los círculos === */}
             <path d="M200 150L400 400L800 250L1000 500" stroke="url(#gradient1)" strokeWidth="2" fill="none" className="animate-pulse" />
             <path d="M0 600L300 400L600 650L900 450L1200 700" stroke="url(#gradient2)" strokeWidth="1" fill="none" className="animate-pulse" />
             
-            {/* Gradientes lineales para las líneas conectoras */}
+            {/* === Gradientes lineales para las líneas === */}
             <defs>
               <linearGradient id="gradient1">
                 <stop offset="0%" stopColor="#FF4500" stopOpacity="0.3" />
@@ -84,111 +87,117 @@ export default function HomePage() {
           </svg>
         </div>
         
-        {/* Partículas flotantes animadas generadas dinámicamente */}
+        {/* === Partículas animadas flotantes === */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {[...Array(20)].map((_, i) => (
             <div
               key={i}
               className="absolute w-1 h-1 bg-orange-400 rounded-full animate-ping"
               style={{
-                left: `${Math.random() * 100}%`, // Posición horizontal aleatoria
-                top: `${Math.random() * 100}%`,  // Posición vertical aleatoria
-                animationDelay: `${Math.random() * 4}s`, // Delay aleatorio
+                left: `${Math.random() * 100}%`,  // Posición horizontal aleatoria
+                top: `${Math.random() * 100}%`,   // Posición vertical aleatoria
+                animationDelay: `${Math.random() * 4}s`, // Retardo aleatorio
                 animationDuration: `${2 + Math.random() * 3}s`, // Duración aleatoria
               }}
             />
           ))}
         </div>
-        
-        {/* Contenido principal del hero con animaciones de entrada */}
-        <div className="relative z-10 text-center text-white px-4 max-w-6xl mx-auto">
-          <div className={`transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            
-            {/* Badge de tecnología de vanguardia */}
-            <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
-              <Sparkles className="w-4 h-4 text-orange-400" />
-              <span className="text-sm font-medium">Tecnología de Vanguardia</span>
-            </div>
-            
-            {/* Título principal con efecto de gradiente animado */}
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-8 leading-tight">
-              Bienvenido a{' '}
-              <span className="relative">
-                <span className="bg-gradient-to-r from-orange-400 via-red-500 to-orange-600 bg-clip-text text-transparent animate-pulse">
-                  Houzze Tec
-                </span>
-                {/* Efecto de brillo detrás del texto */}
-                <div className="absolute -inset-2 bg-gradient-to-r from-orange-400 to-red-500 rounded-lg blur opacity-30 animate-pulse" />
-              </span>
-            </h1>
-            
-            {/* Subtítulo descriptivo */}
-            <p className="text-xl md:text-2xl lg:text-3xl text-gray-300 mb-12 leading-relaxed max-w-4xl mx-auto font-light">
-              La <span className="text-orange-400 font-semibold">vanguardia en tecnología</span> para tu hogar, oficina y estilo de vida digital.
-            </p>
-            
-            {/* Botones de acción principal */}
-            <div className="flex flex-col sm:flex-row justify-center gap-6 mb-16">
-              {/* Botón principal - Explorar Productos */}
-              <Button 
-                asChild 
-                size="lg" 
-                className="group relative bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-bold px-10 py-6 text-xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 rounded-2xl overflow-hidden"
-              >
-                <Link href="/products">
-                  <span className="relative z-10 flex items-center gap-3">
-                    Explorar Productos
-                    <Zap className="w-5 h-5 group-hover:animate-bounce" />
-                  </span>
-                  {/* Overlay que aparece en hover */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                </Link>
-              </Button>
-              
-              {/* Botón secundario - Ver Destacados */}
-              <Button 
-                asChild 
-                size="lg" 
-                variant="outline" 
-                className="group border-2 border-gray-300 text-white hover:bg-white hover:text-slate-900 font-semibold px-10 py-6 text-xl transition-all duration-300 hover:scale-105 rounded-2xl backdrop-blur-sm bg-white/5"
-              >
-                <Link href="#featured">
-                  <span className="flex items-center gap-3">
-                    Ver Destacados
-                    <Star className="w-5 h-5 group-hover:animate-spin" />
-                  </span>
-                </Link>
-              </Button>
-            </div>
-            
-            {/* Grid de beneficios con animaciones escalonadas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              {[
-                { icon: Shield, title: "Garantía Premium", desc: "2 años de protección completa" },
-                { icon: Zap, title: "Envío Express", desc: "24-48h en toda la ciudad" },
-                { icon: Star, title: "Calidad Superior", desc: "Solo las mejores marcas" }
-              ].map((item, index) => (
-                <div 
-                  key={index}
-                  className={`transform transition-all duration-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
-                  style={{ transitionDelay: `${index * 200}ms` }} // Animación escalonada
-                >
-                  <div className="group flex flex-col items-center text-center p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105">
-                    <item.icon className="w-8 h-8 text-orange-400 mb-3 group-hover:animate-pulse" />
-                    <h3 className="font-bold text-lg mb-2">{item.title}</h3>
-                    <p className="text-gray-300 text-sm">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+
+        {/* Aquí iría el contenido del hero: texto, botón o llamada a la acción */}
+
+       {/* Contenido principal del hero con animaciones de entrada */}
+<div className="relative z-10 text-center text-white px-4 max-w-6xl mx-auto">
+  <div className={`transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+    
+    {/* Badge que muestra una característica destacada (ej: tecnología) */}
+    <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
+      <Sparkles className="w-4 h-4 text-orange-400" />
+      <span className="text-sm font-medium">Tecnología de Vanguardia</span>
+    </div>
+    
+    {/* Título principal con efecto de gradiente animado y sombra de brillo */}
+    <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-8 leading-tight">
+      Bienvenido a{' '}
+      <span className="relative">
+        {/* Texto con gradiente animado (resalta el nombre de la marca) */}
+        <span className="bg-gradient-to-r from-orange-400 via-red-500 to-orange-600 bg-clip-text text-transparent animate-pulse">
+          Houzze Tec
+        </span>
+        {/* Brillo difuminado detrás del texto para dar un efecto brillante */}
+        <div className="absolute -inset-2 bg-gradient-to-r from-orange-400 to-red-500 rounded-lg blur opacity-30 animate-pulse" />
+      </span>
+    </h1>
+    
+    {/* Subtítulo descriptivo con énfasis en palabras clave */}
+    <p className="text-xl md:text-2xl lg:text-3xl text-gray-300 mb-12 leading-relaxed max-w-4xl mx-auto font-light">
+      La <span className="text-orange-400 font-semibold">vanguardia en tecnología</span> para tu hogar, oficina y estilo de vida digital.
+    </p>
+    
+    {/* Botones de acción principal (call to action) */}
+    <div className="flex flex-col sm:flex-row justify-center gap-6 mb-16">
+      
+      {/* Botón principal que redirige a la tienda de productos */}
+      <Button 
+        asChild 
+        size="lg" 
+        className="group relative bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-bold px-10 py-6 text-xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 rounded-2xl overflow-hidden"
+      >
+        <Link href="/products">
+          <span className="relative z-10 flex items-center gap-3">
+            Explorar Productos
+            <Zap className="w-5 h-5 group-hover:animate-bounce" /> {/* Ícono con animación al hacer hover */}
+          </span>
+          {/* Efecto de brillo que aparece al hacer hover sobre el botón */}
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+        </Link>
+      </Button>
+      
+      {/* Botón secundario que navega a la sección de productos destacados */}
+      <Button 
+        asChild 
+        size="lg" 
+        variant="outline" 
+        className="group border-2 border-gray-300 text-white hover:bg-white hover:text-slate-900 font-semibold px-10 py-6 text-xl transition-all duration-300 hover:scale-105 rounded-2xl backdrop-blur-sm bg-white/5"
+      >
+        <Link href="#featured">
+          <span className="flex items-center gap-3">
+            Ver Destacados
+            <Star className="w-5 h-5 group-hover:animate-spin" /> {/* Ícono giratorio al hacer hover */}
+          </span>
+        </Link>
+      </Button>
+    </div>
+    
+    {/* Beneficios/ventajas del producto o servicio (animaciones escalonadas) */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+      {[
+        { icon: Shield, title: "Garantía Premium", desc: "2 años de protección completa" },
+        { icon: Zap, title: "Envío Express", desc: "24-48h en toda la ciudad" },
+        { icon: Star, title: "Calidad Superior", desc: "Solo las mejores marcas" }
+      ].map((item, index) => (
+        <div 
+          key={index}
+          className={`transform transition-all duration-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
+          style={{ transitionDelay: `${index * 200}ms` }} // Cada ítem se anima con 200ms de diferencia
+        >
+          {/* Tarjeta de beneficio con hover animado */}
+          <div className="group flex flex-col items-center text-center p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105">
+            <item.icon className="w-8 h-8 text-orange-400 mb-3 group-hover:animate-pulse" /> {/* Ícono con animación de pulso */}
+            <h3 className="font-bold text-lg mb-2">{item.title}</h3>
+            <p className="text-gray-300 text-sm">{item.desc}</p>
           </div>
         </div>
-        
-        {/* Indicador de scroll animado */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <ChevronDown className="w-8 h-8 text-white/60" />
-        </div>
-      </section>
+      ))}
+    </div>
+  </div>
+</div>
+
+{/* Indicador visual animado para incitar a hacer scroll hacia abajo */}
+<div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+  <ChevronDown className="w-8 h-8 text-white/60" />
+</div>
+</section>
+
       
       {/* === CONTENIDO PRINCIPAL CON ESPACIADO ESTANDARIZADO === */}
       <div className="space-y-20 md:space-y-32 py-20">

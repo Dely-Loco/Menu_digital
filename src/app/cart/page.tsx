@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
+
 // Helper para cargar el carrito de localStorage
 const loadCartFromStorage = (): CartItem[] => {
   if (typeof window === 'undefined') return [];
@@ -131,6 +132,7 @@ export default function CartPage() {
               <div className="flex justify-between">
                 <p>Subtotal</p>
                 <p>${subtotal.toFixed(2)}</p>
+                
               </div>
               <div className="flex justify-between">
                 <p>Shipping (Estimated)</p>
