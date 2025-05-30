@@ -1,57 +1,62 @@
-generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+// Debe incluir estos modelos (nombres en español como en tu código)
+model Producto {
+  id                      Int       @id @default(autoincrement())
+  nombre                  String
+  slug                    String    @unique
+  descripcion             String
+  descripcionCorta        String?
+  especificacionesTecnicas String?
+  precio                  Decimal   @db.Decimal(10,2)
+  precioAnterior          Decimal?  @db.Decimal(10,2)
+  marca                   String?
+  stock                   Int       @default(0)
+  rating                  Decimal?  @db.Decimal(3,2)
+  numeroReviews           Int       @default(0)
+  destacado               Boolean   @default(false)
+  esNuevo                 Boolean   @default(false)
+  masVendido              Boolean   @default(false)
+  tags                    String[]
+  caracteristicas         String[]
+  colores                 String[]
+  dimensiones             String?
+  peso                    String?
+  garantia                String?
+  createdAt               DateTime  @default(now())
+  
+  // Relaciones
+  categoriaId             Int?
+  categoria               Categoria? @relation(fields: [categoriaId], references: [id])
+  imagenes                Imagen[]
+  
+  @@map("productos")
 }
 
 model Categoria {
   id          Int       @id @default(autoincrement())
   nombre      String
   slug        String    @unique
-  icono       String?
-  imagen      String?
   descripcion String?
+  imagen      String?
+  icono       String?
   color       String?
-  esPopular   Boolean   @default(false) // 🔧 CAMPO NUEVO
-  orden       Int       @default(0)
-  activa      Boolean   @default(true)
+  esPopular   Boolean   @default(false)
   createdAt   DateTime  @default(now())
-
+  
+  // Relaciones
   productos   Producto[]
+  
+  @@map("categorias")
 }
 
-model Producto {
-  id              Int              @id @default(autoincrement())
-  nombre          String
-  descripcion     String?
-  precio          Decimal
-  precioAnterior  Decimal?
-  categoriaId     Int?             // Ahora es opcional
-  destacado       Boolean          @default(false)
-  esNuevo         Boolean          @default(false) // 🔧 CAMPO NUEVO
-  masVendido      Boolean          @default(false) // 🔧 CAMPO NUEVO
-  stock           Int              @default(0)
-  slug            String           @unique
-  marca           String?
-  rating          Float            @default(0)
-  reviewsCount    Int              @default(0)
-  createdAt       DateTime         @default(now())
-
-  categoria       Categoria?       @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
-  imagenes        ImagenProducto[]
-}
-
-model ImagenProducto {
+model Imagen {
   id         Int      @id @default(autoincrement())
-  productoId Int
   url        String
-  altText    String?
+  alt        String?
   orden      Int      @default(0)
-  principal  Boolean  @default(false)
-
-  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  
+  // Relaciones
+  productoId Int?
+  producto   Producto? @relation(fields: [productoId], references: [id])
+  
+  @@map("imagenes")
 }

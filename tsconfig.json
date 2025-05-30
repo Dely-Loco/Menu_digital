@@ -13,11 +13,10 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-  "@/*": ["*"],
-  "@generated/*": ["generated/*"]
-},
+      "@/*": ["src/*"]
+    },
     "plugins": [
       {
         "name": "next"

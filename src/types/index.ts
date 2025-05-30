@@ -330,14 +330,62 @@ export interface Banner {
 }
 
 /**
- * Interfaz para imágenes de productos
- * Maneja las múltiples imágenes asociadas a cada producto
+ * Imagen asociada a un producto
  */
+export interface ImagenProducto {
+  id: number;
+  productoId: number;
+  url: string;
+  altText?: string;
+  orden: number;
+  principal: boolean;
+}
+
+/**
+ * Categoría de producto
+ */
+export interface Categoria {
+  id: number;
+  nombre: string;
+  slug: string;
+  icono?: string;
+  imagen?: string;
+  descripcion?: string;
+  color?: string;
+  esPopular: boolean;
+  orden: number;
+  activa: boolean;
+  createdAt: string;
+}
+
+/**
+ * Producto completo
+ */
+export interface Producto {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+  precio: string; // Decimal como string
+  precioAnterior?: string;
+  categoriaId?: number;
+  destacado: boolean;
+  isNew: boolean;
+  isBestseller: boolean;
+  stock: number;
+  slug: string;
+  marca?: string;
+  rating: number;
+  reviewsCount: number;
+  createdAt: string;
+  categoria?: Categoria;
+  imagenes: ImagenProducto[];
+}
+
 export interface ProductImage {
-  id: string; // ID único de la imagen
-  productId: string; // ID del producto al que pertenece
-  url: string; // URL de la imagen
-  altText?: string; // Texto alternativo para accesibilidad
-  order: number; // Orden de visualización
-  isPrimary: boolean; // Si es la imagen principal del producto
+  id: string;
+  productId: string;
+  url: string;
+  altText: string;
+  order: number;
+  isPrimary: boolean;
 }
