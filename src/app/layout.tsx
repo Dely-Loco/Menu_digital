@@ -5,7 +5,8 @@ import './globals.css';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { Toaster } from "@/components/ui/toaster";
-import { CartProvider } from '@/context/CartContext'; // <-- 1. IMPORTA EL CARTPROVIDER
+import { CartProvider } from '@/context/CartContext';
+import WhatsAppButton from '@/components/ui/whatsapp-button';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -13,10 +14,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Houzze Tec',
-  description: 'Tienda especializada en productos tecnológicos, electrónicos y accesorios inteligentes para el hogar, oficina y estilo de vida digital.', // Texto traducido
+  title: 'Houzze Tec | Innovación Tecnológica',
+  description:
+    'Tu tienda especializada en productos tecnológicos de vanguardia, electrónicos y accesorios inteligentes para el hogar, oficina y tu estilo de vida digital.',
   icons: {
-    icon: '/Logo.png', // Asegúrate que esta ruta sea correcta (desde la carpeta public)
+    icon: '/Logo.png',
     shortcut: '/Logo.png',
     apple: '/Logo.png',
   },
@@ -27,21 +29,30 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Configuración de WhatsApp
+  const whatsappNumber = "573246789589"; // Reemplaza con tu número real
+  const whatsappMessage = "¡Hola Houzze Tec! Estoy interesado/a en conocer más sobre sus productos tecnológicos. ¿Pueden darme más información? ¡Gracias!";
+
   return (
-    <html lang="es"> {/* Sugerencia: Cambia el idioma a español "es" */}
+    <html lang="es">
       <body
-        className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen bg-gray-100 dark:bg-slate-900`} // Añadido un color de fondo base
+        className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen bg-gray-50 dark:bg-slate-950`}
       >
-        <CartProvider> {/* <-- 2. ENVUELVE CON CARTPROVIDER */}
+        <CartProvider>
           <Header />
-          <main className="flex-grow container mx-auto px-4 py-8">
+          <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {children}
           </main>
           <Footer />
           <Toaster />
+
+          {/* BOTÓN FLOTANTE DE WHATSAPP MEJORADO */}
+          <WhatsAppButton 
+            phoneNumber={whatsappNumber}
+            message={whatsappMessage}
+          />
         </CartProvider>
       </body>
     </html>
   );
 }
-

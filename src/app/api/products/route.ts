@@ -1,8 +1,8 @@
 // src/app/api/products/route.ts
 import { NextResponse } from 'next/server';
-import { db } from '../../../lib/db'; // Adjust path to your Prisma client
-import { mapProductos } from '../../../lib/mappers'; // Adjust path to your mappers
-import { Prisma } from '@prisma/client'; // Import Prisma for more specific types
+import { db } from '../../../lib/db'; // Ajusta esta ruta a tu cliente Prisma
+import { mapProductos } from '../../../lib/mappers'; // Ajusta esta ruta a tus mappers
+import { Prisma } from '@prisma/client';
 
 export async function GET(request: Request) {
   try {
@@ -11,12 +11,18 @@ export async function GET(request: Request) {
     const brandName = searchParams.get('brand');
     const minPriceParam = searchParams.get('minPrice');
     const maxPriceParam = searchParams.get('maxPrice');
-    const searchQuery = searchParams.get('search');
+    const searchQuery = searchParams.get('search'); // Este es el término de búsqueda
     const sortBy = searchParams.get('sort');
-    const isFeatured = searchParams.get('featured'); // For featured products
-    const isOnSale = searchParams.get('on_sale');   // For products on sale
+    const isFeatured = searchParams.get('featured');
+    const isOnSale = searchParams.get('on_sale');
 
-    // Define a more specific type for whereConditions
+    // --- Debugging Logs ---
+    console.log('[API /api/products] Received URL:', request.url);
+    console.log('[API /api/products] searchQuery:', searchQuery);
+    console.log('[API /api/products] categorySlug:', categorySlug);
+    console.log('[API /api/products] brandName:', brandName);
+    // --- Fin Debugging Logs ---
+
     const whereConditions: Prisma.ProductoWhereInput = {};
 
     if (categorySlug && categorySlug !== 'all') {
@@ -37,104 +43,79 @@ export async function GET(request: Request) {
 
     if (minPrice !== undefined && !isNaN(minPrice)) {
       whereConditions.precio = {
-        ...(whereConditions.precio as Prisma.DecimalFilter), // Type assertion
+        ...(whereConditions.precio as Prisma.DecimalFilter),
         gte: minPrice,
       };
     }
 
     if (maxPrice !== undefined && !isNaN(maxPrice)) {
       whereConditions.precio = {
-        ...(whereConditions.precio as Prisma.DecimalFilter), // Type assertion
+        ...(whereConditions.precio as Prisma.DecimalFilter),
         lte: maxPrice,
       };
     }
 
-    if (searchQuery) {
+    // Lógica de búsqueda mejorada
+    if (searchQuery && searchQuery.trim() !== "") { // Asegurarse que searchQuery no esté vacío
+      const cleanedSearchQuery = searchQuery.trim();
       whereConditions.OR = [
-        { nombre: { contains: searchQuery, mode: 'insensitive' } },
-        { descripcion: { contains: searchQuery, mode: 'insensitive' } },
-        { marca: { contains: searchQuery, mode: 'insensitive' } },
-        { etiquetas: { has: searchQuery } }, // Assumes 'searchQuery' is a single tag to search for
+        { nombre: { contains: cleanedSearchQuery, mode: 'insensitive' } },
+        { marca: { contains: cleanedSearchQuery, mode: 'insensitive' } },
+        // Para etiquetas, `has` busca una coincidencia exacta del string completo.
+        // Si quieres buscar si CUALQUIER palabra del searchQuery está en las etiquetas, es más complejo.
+        // Por ahora, mantenemos `has` para una etiqueta exacta o si la etiqueta es una frase.
+        { etiquetas: { has: cleanedSearchQuery } },
+        // Considera si quieres buscar también en la descripción corta o completa,
+        // pero recuerda que puede traer resultados menos precisos.
+        // { descripcionCorta: { contains: cleanedSearchQuery, mode: 'insensitive' } },
       ];
+      console.log('[API /api/products] Applying search conditions for:', cleanedSearchQuery, whereConditions.OR);
+    } else {
+      console.log('[API /api/products] No search query, or empty search query.');
     }
+
 
     if (isFeatured === 'true') {
       whereConditions.destacado = true;
     }
 
     if (isOnSale === 'true') {
-      // This identifies products that *could* be on sale by having an original price.
-      // The actual discount (precio < precioAnterior) is calculated by your mapper.
-      // For a stricter DB-level "on sale" filter, you'd ideally have an `enOferta: Boolean` field
-      // in your Producto model that you set when precio < precioAnterior.
-      whereConditions.precioAnterior = {
-        not: null,
-      };
-      // And to ensure there IS a discount (precio < precioAnterior), this is harder in Prisma directly.
-      // The mappers calculate discountPercentage, so the frontend can use that if needed.
-      // If you need to strictly filter by `precio < precioAnterior` at the DB level,
-      // it often requires a raw query or a dedicated 'enOferta' field.
-      // For now, we'll filter by items that *have* an originalPrice, implying they *might* be on sale.
+      whereConditions.precioAnterior = { not: null };
+      // Adicionalmente, para que sea una oferta real, precio < precioAnterior.
+      // Esto es difícil de hacer directamente en un where de Prisma para comparar dos columnas.
+      // Una solución es tener un campo 'enOferta' en la BD o filtrar después del fetch,
+      // o confiar en que el frontend muestre el descuento basado en los dos precios.
+      // Por ahora, solo verificamos que tenga un precioAnterior.
     }
+    
+    console.log('[API /api/products] Final whereConditions:', JSON.stringify(whereConditions, null, 2));
 
-    let orderBy: Prisma.ProductoOrderByWithRelationInput | Prisma.ProductoOrderByWithRelationInput[] = {};
+
+    let orderBy: Prisma.ProductoOrderByWithRelationInput | Prisma.ProductoOrderByWithRelationInput[] = { creadoEn: 'desc' }; // Default
     switch (sortBy) {
-      case 'price-asc':
-        orderBy = { precio: 'asc' };
-        break;
-      case 'price-desc':
-        orderBy = { precio: 'desc' };
-        break;
-      case 'rating-desc':
-        orderBy = { calificacion: 'desc' }; // Prisma field name
-        break;
-      case 'name-asc':
-        orderBy = { nombre: 'asc' };
-        break;
-      default: // Default sort
-        orderBy = { creadoEn: 'desc' }; // Prisma field name
+      case 'price-asc': orderBy = { precio: 'asc' }; break;
+      case 'price-desc': orderBy = { precio: 'desc' }; break;
+      case 'rating-desc': orderBy = { calificacion: 'desc' }; break;
+      case 'name-asc': orderBy = { nombre: 'asc' }; break;
+      // default ya está establecido
     }
+    console.log('[API /api/products] orderBy:', orderBy);
 
-    // Example for pagination (you can uncomment and use if you pass page/limit params)
-    // const page = parseInt(searchParams.get('page') || '1', 10);
-    // const limit = parseInt(searchParams.get('limit') || '10', 10); // Default 10 items per page
-    // const skip = (page - 1) * limit;
 
     const productosDB = await db.producto.findMany({
       where: whereConditions,
       include: {
-        categoria: { // Ensure category data needed by mapper is included
-          include: {
-            _count: {
-              select: { productos: true }
-            }
-          }
+        categoria: {
+          include: { _count: { select: { productos: true } } }
         },
-        imagenes: {
-          orderBy: {
-            orden: 'asc',
-          },
-        },
+        imagenes: { orderBy: { orden: 'asc' } },
       },
       orderBy,
-      // take: limit, // For pagination
-      // skip: skip,   // For pagination
     });
 
-    // const totalProducts = await db.producto.count({ where: whereConditions }); // For pagination metadata
-
     const productosMapeados = mapProductos(productosDB);
+    console.log(`[API /api/products] Found ${productosDB.length} products, mapped to ${productosMapeados.length}.`);
 
-    // For pagination, your response might look like:
-    // return NextResponse.json({
-    //   data: productosMapeados,
-    //   pagination: {
-    //     page,
-    //     limit,
-    //     total: totalProducts,
-    //     totalPages: Math.ceil(totalProducts / limit),
-    //   }
-    // });
 
     return NextResponse.json(productosMapeados);
 

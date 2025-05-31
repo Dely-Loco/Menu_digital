@@ -64,7 +64,7 @@ export default function Footer() {
   };
 
   const socialLinks = [
-    { href: '#', icon: Facebook, label: 'Facebook', color: 'hover:text-blue-500' },
+    { href: 'https://www.facebook.com/profile.php?id=61577043022680', icon: Facebook, label: 'Facebook', color: 'hover:text-blue-500' },
     { href: 'https://www.instagram.com/houzze.tec/?utm_source=ig_web_button_share_sheet', icon: Instagram, label: 'Instagram', color: 'hover:text-pink-500' },
     // Añade más solo si realmente los vas a usar
     // { href: '#', icon: Twitter, label: 'Twitter/X', color: 'hover:text-sky-400' },
@@ -246,7 +246,7 @@ export default function Footer() {
             <div className="text-center mt-6 pt-6 border-t border-gray-800">
               <p className="text-gray-500 text-sm flex items-center justify-center gap-2">
                 {/* TRADUCIDO */}
-                Hecho con <Heart className="h-4 w-4 text-red-500 animate-pulse" /> por el Equipo Houzze Tec
+                Made with<Heart className="h-4 w-4 text-red-500 animate-pulse" /> by the Houzze Tec Team
                 <Globe className="h-4 w-4 text-blue-400 animate-spin-slow" />
               </p>
             </div>
@@ -254,19 +254,22 @@ export default function Footer() {
         </div>
       </footer>
 
-      {showScrollTop && (
-        <div className={`fixed bottom-8 right-8 z-50 transition-all duration-300 ${
-          showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16 pointer-events-none'
-        }`}>
-          <Button
-            onClick={scrollToTop}
-            className="h-14 w-14 rounded-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
-            aria-label="Volver arriba" // TRADUCIDO
-          >
-            <ArrowUp className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-300" />
-          </Button>
-        </div>
-      )}
+      {/*
+{showScrollTop && (
+  <div className={`fixed bottom-8 right-8 z-50 transition-all duration-300 ${
+    showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16 pointer-events-none'
+  }`}>
+    <Button
+      onClick={scrollToTop}
+      className="h-14 w-14 rounded-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
+      aria-label="Volver arriba"
+    >
+      <ArrowUp className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-300" />
+    </Button>
+  </div>
+)}
+*/}
+
     </>
   );
 }

@@ -61,6 +61,7 @@ export default function Header() {
     if (searchQuery.trim()) {
       router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
       setIsMobileMenuOpen(false); 
+      setSearchQuery(''); // Limpiar el campo de búsqueda después de enviar
     }
   };
 
