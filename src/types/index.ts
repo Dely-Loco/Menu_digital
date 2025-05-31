@@ -7,60 +7,94 @@
  */
 export interface Product {
   // Identificadores básicos
-  id: string; // ID único del producto
+  id: string; // ID único del producto (convertido a string desde la BD)
   name: string; // Nombre del producto
   slug: string; // URL amigable (ej: "laptop-gaming-asus")
   
   // Descripciones del producto
   description: string; // Descripción completa del producto
   shortDescription?: string; // Descripción corta para tarjetas y vistas previas
-  technicalSpec: string; // Especificaciones técnicas detalladas
+  technicalSpec?: string; // Especificaciones técnicas detalladas
   
   // Información de precios
-  price: number; // Precio actual del producto
+  price: number; // Precio actual del producto (convertido desde Decimal)
   originalPrice?: number; // Precio original (antes de descuento)
   discountPercentage?: number; // Porcentaje de descuento calculado
   
   // Categorización y marca
-  category: string | Category | undefined; // Categoría del producto (puede ser string o objeto Category)
-  brand: string; // Marca del producto
+  category?: Category; // Categoría del producto como objeto
+  categorySlug?: string; // Slug de la categoría para navegación
+  brand?: string; // Marca del producto
   
   // Multimedia y calificaciones
-  images: string[]; // Array de URLs de imágenes del producto
+  images: ProductImage[]; // Array de imágenes del producto
   rating: number; // Calificación promedio del producto
   reviewsCount: number; // Número total de reseñas
   
   // Inventario y etiquetas especiales
   stock: number; // Cantidad disponible en inventario
-  isFeatured?: boolean; // Si el producto está destacado
-  isNew?: boolean; // Etiqueta de producto nuevo
-  isBestseller?: boolean; // Etiqueta de producto más vendido
-  tags?: string[]; // Etiquetas para filtrado y búsqueda
+  isFeatured: boolean; // Si el producto está destacado
+  isNew: boolean; // Etiqueta de producto nuevo
+  isBestseller: boolean; // Etiqueta de producto más vendido
+  tags: string[]; // Etiquetas para filtrado y búsqueda
   dataAiHint?: string; // Pista para sistemas de IA/búsqueda
   
   // Detalles mejorados del producto
-  features?: string[]; // Lista de características principales
-  colors?: string[]; // Colores disponibles
-  sizes?: string[]; // Tallas disponibles (para ropa/accesorios)
-  switchTypes?: string[]; // Tipos de switches (para teclados mecánicos)
+  features: string[]; // Lista de características principales
+  colors: string[]; // Colores disponibles
   dimensions?: string; // Dimensiones físicas del producto
   weight?: string; // Peso del producto
   warranty?: string; // Período de garantía
   shippingInfo?: string; // Información de envío
   
-  // Datos de interacción del usuario
+  // Datos de interacción del usuario (manejados en frontend)
   inWishlist?: boolean; // Si está en la lista de deseos del usuario
   compareCount?: number; // Cuántos usuarios están comparando este producto
   
   // Sistema de reseñas mejorado
   reviews?: ProductReview[]; // Array de reseñas del producto
   
-  // Compatibilidad y especificaciones (para productos tecnológicos)
-  compatibility?: string[]; // Plataformas/sistemas compatibles
-  lumens?: string; // Luminosidad (para luces/proyectores)
-  lifespan?: string; // Vida útil del producto
-  maxSpeed?: string; // Velocidad máxima (para drones, vehículos)
-  ports?: string[]; // Puertos disponibles (para cargadores, hubs)
+  // Metadatos
+  createdAt?: string; // Fecha de creación
+}
+
+/**
+ * Interfaz para las imágenes de productos
+ * Define la estructura de las imágenes asociadas a productos
+ */
+export interface ProductImage {
+  id: string; // ID único de la imagen
+  url: string; // URL de la imagen
+  alt?: string; // Texto alternativo para accesibilidad
+  order: number; // Orden de visualización
+  isPrimary?: boolean; // Si es la imagen principal (calculado desde orden === 0)
+}
+
+/**
+ * Interfaz para las categorías de productos
+ * Define la estructura jerárquica de organización de productos
+ */
+export interface Category {
+  // Identificadores básicos
+  id: string; // ID único de la categoría (convertido a string desde la BD)
+  name: string; // Nombre de la categoría
+  slug: string; // URL amigable de la categoría
+  description?: string; // Descripción de la categoría
+  image?: string; // URL de imagen representativa
+  dataAiHint?: string; // Pista para sistemas de IA
+  
+  // Datos mejorados de categoría
+  icon?: string; // Emoji o icono para representar la categoría
+  color?: string; // Color de marca asociado a la categoría
+  productsCount?: number; // Número de productos en esta categoría
+  isPopular: boolean; // Si es una categoría popular
+  
+  // Para mega menús y navegación
+  subcategories?: Category[]; // Subcategorías anidadas (futuro uso)
+  featuredProducts?: string[]; // IDs de productos destacados en esta categoría
+  
+  // Metadatos
+  createdAt?: string; // Fecha de creación
 }
 
 /**
@@ -76,30 +110,6 @@ export interface ProductReview {
   verified: boolean; // Si la compra está verificada
   helpful?: number; // Número de votos "útil" recibidos
   images?: string[]; // Imágenes adjuntas a la reseña
-}
-
-/**
- * Interfaz para las categorías de productos
- * Define la estructura jerárquica de organización de productos
- */
-export interface Category {
-  // Identificadores básicos
-  id: string; // ID único de la categoría
-  name: string; // Nombre de la categoría
-  slug: string; // URL amigable de la categoría
-  description?: string; // Descripción de la categoría
-  image?: string; // URL de imagen representativa
-  dataAiHint?: string; // Pista para sistemas de IA
-  
-  // Datos mejorados de categoría
-  icon?: string; // Emoji o icono para representar la categoría
-  color?: string; // Color de marca asociado a la categoría
-  productsCount?: number; // Número de productos en esta categoría
-  isPopular?: boolean; // Si es una categoría popular
-  
-  // Para mega menús y navegación
-  subcategories?: Category[]; // Subcategorías anidadas
-  featuredProducts?: string[]; // IDs de productos destacados en esta categoría
 }
 
 /**
@@ -153,7 +163,7 @@ export interface CartItem extends Product {
  * Define los criterios de filtrado disponibles
  */
 export interface ProductFilters {
-  category?: string; // Filtrar por categoría
+  category?: string; // Filtrar por categoría (slug)
   brand?: string; // Filtrar por marca
   minPrice?: number; // Precio mínimo
   maxPrice?: number; // Precio máximo
@@ -329,63 +339,67 @@ export interface Banner {
   priority: number; // Orden de visualización (mayor prioridad = se muestra primero)
 }
 
-/**
- * Imagen asociada a un producto
- */
-export interface ImagenProducto {
-  id: number;
-  productoId: number;
-  url: string;
-  altText?: string;
-  orden: number;
-  principal: boolean;
-}
+// ===== TIPOS ESPECÍFICOS DE PRISMA =====
+// Estos tipos representan exactamente lo que viene de la BD
 
 /**
- * Categoría de producto
+ * Tipo que representa un producto tal como viene de Prisma
+ * Usado internamente en las queries
  */
-export interface Categoria {
+
+export type DBProduct = {
   id: number;
   nombre: string;
   slug: string;
-  icono?: string;
-  imagen?: string;
-  descripcion?: string;
-  color?: string;
-  esPopular: boolean;
-  orden: number;
-  activa: boolean;
-  createdAt: string;
-}
-
-/**
- * Producto completo
- */
-export interface Producto {
-  id: number;
-  nombre: string;
-  descripcion?: string;
-  precio: string; // Decimal como string
-  precioAnterior?: string;
-  categoriaId?: number;
-  destacado: boolean;
-  isNew: boolean;
-  isBestseller: boolean;
+  descripcion: string;
+  descripcionCorta?: string | null;
+  especificacionesTecnicas?: string | null;
+  precio: any; // Prisma Decimal
+  precioAnterior?: any | null; // Prisma Decimal
+  marca?: string | null;
   stock: number;
-  slug: string;
-  marca?: string;
-  rating: number;
-  reviewsCount: number;
-  createdAt: string;
-  categoria?: Categoria;
-  imagenes: ImagenProducto[];
-}
+  calificacion?: any | null; // ANTES: rating. (Prisma Decimal)
+  numeroReviews: number;
+  destacado: boolean;
+  esNuevo: boolean;
+  masVendido: boolean;
+  etiquetas: string[];       // ANTES: tags
+  caracteristicas: string[];
+  colores: string[];
+  dimensiones?: string | null;
+  peso?: string | null;
+  garantia?: string | null;
+  creadoEn: Date;            // ANTES: createdAt
+  categoriaId?: number | null;
+  categoria?: DBCategory | null; // Este DBCategory también debe estar actualizado
+  imagenes: DBImage[];
+};
 
-export interface ProductImage {
-  id: string;
-  productId: string;
+/**
+ * Tipo que representa una categoría tal como viene de Prisma
+ */
+export type DBCategory = {
+  id: number;
+  nombre: string;
+  slug: string;
+  descripcion?: string | null;
+  imagen?: string | null;
+  icono?: string | null;
+  color?: string | null;
+  esPopular: boolean;
+  creadoEn: Date;            // ANTES: createdAt
+  _count?: {
+    productos: number;
+  };
+};
+
+/**
+ * Tipo que representa una imagen tal como viene de Prisma
+ */
+export type DBImage = {
+  id: number;
   url: string;
-  altText: string;
-  order: number;
-  isPrimary: boolean;
-}
+  alt?: string | null;
+  orden: number;
+  productoId?: number | null;
+};

@@ -72,40 +72,66 @@ export default function ProductsPage() {
   }, []); // Array vacío = solo se ejecuta una vez al montar
 
   // ========== FUNCIÓN PARA OBTENER PRODUCTOS FILTRADOS ==========
-  const fetchProducts = useCallback(() => {
-    setLoading(true);    // Activa indicador de carga
-    setError(null);      // Limpia errores previos
-    
-    // Construye query string con todos los filtros activos
-    const params = new URLSearchParams();
-    
-    // Solo agrega parámetros si tienen valores (evita parámetros vacíos)
-    if (selectedCategory !== "all") params.append("category", selectedCategory);
-    if (selectedBrand !== "all") params.append("brand", selectedBrand);
-    if (minPrice) params.append("minPrice", minPrice);
-    if (maxPrice) params.append("maxPrice", maxPrice);
-    if (debouncedSearch) params.append("search", debouncedSearch); // Usa versión con debounce
-    if (selectedSort !== "default") params.append("sort", selectedSort);
+  // En tu archivo src/app/products/page.tsx
 
-    // Realiza request con todos los filtros aplicados
-    fetch(`/api/products?${params.toString()}`)
-      .then((res) => {
-        // Verifica si la respuesta es exitosa
-        if (!res.ok) throw new Error("Error loading products");
-        return res.json();
-      })
-      .then(setProducts)                    // Actualiza lista de productos
-      .catch((err) => setError(err.message)) // Captura y muestra errores
-      .finally(() => setLoading(false));     // Desactiva indicador de carga
-  }, [
-    // Dependencias: se re-ejecuta cuando cualquiera de estos valores cambia
-    selectedCategory, 
-    selectedBrand, 
-    minPrice, 
-    maxPrice, 
-    debouncedSearch, // Importante: usa la versión con debounce
-    selectedSort
-  ]);
+const fetchProducts = useCallback(() => {
+  setLoading(true);
+  setError(null);
+
+  const params = new URLSearchParams();
+  if (selectedCategory !== "all") params.append("category", selectedCategory);
+  if (selectedBrand !== "all") params.append("brand", selectedBrand);
+  if (minPrice) params.append("minPrice", minPrice);
+  if (maxPrice) params.append("maxPrice", maxPrice);
+  if (debouncedSearch) params.append("search", debouncedSearch);
+  if (selectedSort !== "default") params.append("sort", selectedSort);
+
+  console.log(`Fetching /api/products?${params.toString()}`); // Log para ver la URL que se llama
+
+  fetch(`/api/products?${params.toString()}`)
+    .then(async (res) => { // Hacemos la función interna async para poder usar await res.text() si es necesario
+      console.log('Frontend: API Response Status:', res.status);
+      console.log('Frontend: API Response OK?:', res.ok);
+
+      if (!res.ok) {
+        // Si la respuesta no es OK, intenta leer el cuerpo como texto para más detalles
+        const errorBody = await res.text();
+        console.error('Frontend: API Error Response Body:', errorBody);
+        throw new Error(`Failed to fetch products. Status: ${res.status}. Body: ${errorBody}`);
+      }
+
+      const data = await res.json(); // Intenta parsear como JSON
+      console.log('Frontend: Parsed JSON data:', data); // MUESTRA LOS DATOS QUE LLEGAN AL FRONTEND
+      return data;
+    })
+    .then((data) => {
+      // Antes de llamar a setProducts, verifica la estructura de 'data'
+      // y específicamente el campo 'rating' de los primeros productos
+      if (Array.isArray(data) && data.length > 0) {
+        console.log('Frontend: First product from API for setProducts:', data[0]);
+        console.log('Frontend: Rating of first product:', data[0]?.rating, typeof data[0]?.rating);
+      } else if (data && typeof data === 'object' && Array.isArray(data.data)) {
+        // En caso de que la API devuelva un objeto con una propiedad 'data' que es el array (como en paginación)
+        console.log('Frontend: First product from API (data.data) for setProducts:', data.data[0]);
+        console.log('Frontend: Rating of first product (data.data):', data.data[0]?.rating, typeof data.data[0]?.rating);
+        setProducts(data.data); // Si los productos están en data.data
+        return; // Salir para no llamar a setProducts(data) abajo
+      }
+      setProducts(data); // Asume que 'data' es directamente el array de Product[]
+    })
+    .catch((err) => {
+      console.error('Frontend: Error in fetchProducts catch block:', err);
+      setError(err.message || "An unexpected error occurred");
+    })
+    .finally(() => setLoading(false));
+}, [
+  selectedCategory, 
+  selectedBrand, 
+  minPrice, 
+  maxPrice, 
+  debouncedSearch,
+  selectedSort
+]);
 
   // ========== EFECTO PARA RECARGAR PRODUCTOS ==========
   // Se ejecuta cada vez que cambian los filtros (gracias a useCallback)

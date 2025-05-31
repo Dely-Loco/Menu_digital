@@ -54,10 +54,10 @@ export default function ProductCard({ product }: ProductCardProps) {
               <Image
                 // Lógica para mostrar imagen: array[índiceActual] o imagen por defecto
                 src={
-                  Array.isArray(product.images) && product.images.length > 0
-                    ? product.images[currentImageIndex] || product.images[0]
-                    : '/placeholder.jpg' // Fallback si no hay imágenes
-                }
+  Array.isArray(product.images) && product.images.length > 0
+    ? (product.images[currentImageIndex] || product.images[0]).url // <--- AÑADE .url AQUÍ
+    : '/placeholder.jpg'
+}
                 alt={product.name}
                 fill // Ocupa todo el contenedor padre manteniendo aspect ratio
                 className={`object-cover transition-all duration-700 group-hover:scale-110 ${
