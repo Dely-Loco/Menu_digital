@@ -23,7 +23,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images, produ
   if (!images || images.length === 0) {
     // Fallback si no hay imágenes (aunque tu page.tsx ya tiene uno)
     return (
-      <div className="aspect-square bg-gray-200 rounded-xl flex items-center justify-center shadow-lg border">
+      <div className="w-full h-full object-contain bg-gray-200 rounded-xl flex items-center justify-center shadow-lg border">
         <p className="text-gray-500">No image available</p>
       </div>
     );
@@ -35,7 +35,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images, produ
   return (
     <div className="space-y-4">
       {/* Imagen principal del producto */}
-      <div className="aspect-square bg-white rounded-xl overflow-hidden shadow-2xl border">
+      <div className="w-full h-full object-contain bg-white rounded-xl overflow-hidden shadow-2xl border">
         <Image
           src={currentMainImage.url}
           alt={currentMainImage.alt || productName}
@@ -53,7 +53,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images, produ
           {images.map((imageObj) => (
             <div
               key={imageObj.id}
-              className={`aspect-square bg-white rounded-md overflow-hidden shadow border cursor-pointer transition-all duration-200
+              className={` w-full h-full object-contain bg-white rounded-md overflow-hidden shadow border cursor-pointer transition-all duration-200
                           ${mainImage?.id === imageObj.id ? 'ring-2 ring-blue-500 ring-offset-2' : 'hover:ring-2 hover:ring-blue-300'}`}
               onClick={() => setMainImage(imageObj)} // CAMBIA LA IMAGEN PRINCIPAL AL HACER CLIC
             >

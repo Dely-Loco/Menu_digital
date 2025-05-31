@@ -1,11 +1,10 @@
-"use client";
+// src/app/cart/CartItemRow.tsx
+// Asumo que este archivo es un Client Component, si no lo es, añade "use client";
+"use client"; // Probablemente necesario si tiene handlers
 
-import Link from 'next/link';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Trash2, Minus, Plus } from 'lucide-react';
-import type { CartItem } from '@/types';
+import Link from 'next/link';
+import type { CartItem, ProductImage } from '@/types'; // Importa ProductImage si es necesario para claridad
 
 interface CartItemRowProps {
   item: CartItem;
@@ -14,69 +13,61 @@ interface CartItemRowProps {
 }
 
 export default function CartItemRow({ item, updateQuantity, removeItem }: CartItemRowProps) {
+  // Determinar la URL de la imagen principal o la primera imagen
+  const imageUrl = item.images && item.images.length > 0 
+                   ? item.images.find(img => img.isPrimary)?.url || item.images[0].url 
+                   : '/placeholder-product.jpg'; // Un placeholder general
+
+  const imageAlt = item.images && item.images.length > 0
+                   ? item.images.find(img => img.isPrimary)?.alt || item.images[0].alt || item.name
+                   : item.name;
+
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4 p-4 shadow-sm bg-white rounded-md">
+    <div className="flex flex-col sm:flex-row items-center gap-4 p-4 border-b"> {/* Estructura y estilos de ejemplo */}
       <Link href={`/products/${item.slug}`} className="block shrink-0">
-        <Image
-          src={item.images[0]}
-          alt={item.name}
-          width={100}
-          height={100}
-          className="rounded-md object-cover w-24 h-24 sm:w-28 sm:h-28"
-          data-ai-hint={item.dataAiHint || 'product image'}
-        />
+        <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-md overflow-hidden bg-gray-100"> {/* Contenedor con tamaño */}
+          <Image
+            src={imageUrl} // <--- USA LA VARIABLE imageUrl
+            alt={imageAlt}
+            fill // 'fill' necesita un padre con 'position: relative' y dimensiones
+            className="object-contain" // O 'object-cover' según prefieras
+            sizes="(max-width: 768px) 100px, 128px" // Ajusta sizes
+          />
+        </div>
       </Link>
-      <div className="flex-grow space-y-1 text-center sm:text-left">
-        <Link href={`/products/${item.slug}`} className="block">
-          <h2 className="text-lg font-semibold hover:text-primary">{item.name}</h2>
+      
+      <div className="flex-grow text-center sm:text-left">
+        <Link href={`/products/${item.slug}`}>
+          <h3 className="text-lg font-semibold hover:text-orange-600">{item.name}</h3>
         </Link>
-        <p className="text-sm text-muted-foreground">{item.brand}</p>
-        <p className="text-md font-medium">${item.price.toFixed(2)}</p>
+        <p className="text-sm text-gray-500">Precio Unitario: {item.price.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits:0, maximumFractionDigits:0 })}</p>
+        {/* Puedes añadir más detalles como color, talla si están en CartItem */}
       </div>
-      <div className="flex items-center space-x-2">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+
+      <div className="flex items-center gap-2">
+        <button 
+          onClick={() => updateQuantity(item.id, item.quantity - 1)} 
           disabled={item.quantity <= 1}
-          aria-label={`Decrease quantity of ${item.name}`}
+          className="px-2 py-1 border rounded disabled:opacity-50"
         >
-          <Minus className="h-4 w-4" />
-        </Button>
-        <Input
-          type="number"
-          aria-label={`Quantity for ${item.name}`}
-          value={item.quantity}
-          onChange={(e) => {
-            const value = parseInt(e.target.value);
-            if (!isNaN(value) && value > 0) {
-              updateQuantity(item.id, value);
-            }
-          }}
-          min="1"
-          className="w-16 h-9 text-center"
-        />
-        <Button
-          variant="outline"
-          size="icon"
+          -
+        </button>
+        <span>{item.quantity}</span>
+        <button 
           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-          aria-label={`Increase quantity of ${item.name}`}
+          className="px-2 py-1 border rounded"
         >
-          <Plus className="h-4 w-4" />
-        </Button>
+          +
+        </button>
       </div>
-      <p className="text-lg font-semibold w-20 text-center sm:text-right">
-        ${(item.price * item.quantity).toFixed(2)}
+
+      <p className="font-semibold w-24 text-center sm:text-right">
+        {(item.price * item.quantity).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits:0, maximumFractionDigits:0 })}
       </p>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => removeItem(item.id)}
-        className="text-destructive hover:text-destructive/80"
-        aria-label={`Remove ${item.name} from cart`}
-      >
-        <Trash2 className="h-5 w-5" />
-      </Button>
+
+      <button onClick={() => removeItem(item.id)} className="text-red-500 hover:text-red-700">
+        Eliminar
+      </button>
     </div>
   );
 }

@@ -3,83 +3,97 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useCallback } from 'react'; // Añadido useCallback
 import type { Product } from '@/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Star, ShoppingCart, Eye, Heart } from 'lucide-react';
-import { getCategoryName } from "@/lib/utils";
+// import { getCategoryName } from "@/lib/utils"; // Comentado si no se usa directamente aquí
+import { useCart } from '@/context/CartContext'; // <--- 1. IMPORTA useCart
 
 interface ProductCardProps {
   product: Product;
+  // Opcional: podrías pasar una función onAddToCart desde la página si necesitas lógica extra allí
+  // onAddToCart?: (product: Product) => void; 
 }
 
+const formatCurrencyCOP = (value?: number): string => {
+  if (typeof value !== 'number') {
+    return ''; 
+  }
+  return value.toLocaleString('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+};
+
 export default function ProductCard({ product }: ProductCardProps) {
-  // ========== ESTADOS LOCALES ==========
-  // Controla si el usuario está haciendo hover sobre la card
   const [isHovered, setIsHovered] = useState(false);
-  
-  // Previene el flash de contenido mientras la imagen carga
   const [imageLoaded, setImageLoaded] = useState(false);
-  
-  // Maneja qué imagen mostrar cuando hay múltiples imágenes del producto
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // ========== CÁLCULOS DINÁMICOS ==========
-  // Calcula el porcentaje de descuento basado en precio original vs precio actual
-  const discount = product.originalPrice 
+  const { dispatch } = useCart(); // <--- 2. OBTÉN dispatch DEL CONTEXTO DEL CARRITO
+
+  const discount = product.originalPrice && product.price < product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
 
+  // 3. CREA EL HANDLER PARA AÑADIR AL CARRITO
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita que el clic se propague al Link de la tarjeta si el botón está dentro
+    e.preventDefault();  // Evita cualquier comportamiento por defecto si el botón estuviera en un form
+
+    dispatch({ type: 'ADD_ITEM', payload: product });
+    
+    // Opcional: Mostrar alguna notificación o feedback visual
+    console.log(`${product.name} añadido al carrito!`);
+    // Podrías usar aquí la función `toast` de `sonner` o `react-hot-toast` si la tienes configurada
+    // import { toast } from "sonner";
+    // toast.success(`${product.name} añadido al carrito!`);
+
+  }, [dispatch, product]);
+
   return (
     <div 
-      // Contenedor principal con efectos de transformación en hover (se eleva 8px)
       className="group relative transform transition-all duration-500 hover:-translate-y-2"
-      onMouseEnter={() => setIsHovered(true)}   // Activa estado hover
-      onMouseLeave={() => setIsHovered(false)}  // Desactiva estado hover
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setCurrentImageIndex(0);
+      }}
     >
-      <Card className="relative overflow-hidden bg-white border-0 shadow-lg group-hover:shadow-2xl transition-all duration-500 rounded-2xl">
-        
-        {/* ========== EFECTO DE RESPLANDOR ==========*/}
-        {/* Overlay con gradiente sutil que aparece solo en hover */}
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-400/0 via-orange-500/5 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
+      <Card className="relative overflow-hidden bg-white border-0 shadow-lg group-hover:shadow-2xl transition-all duration-500 rounded-2xl flex flex-col h-full"> {/* Asegurar que la card ocupe toda la altura */}
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-400/0 via-orange-500/5 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" />
         
         <CardHeader className="p-0 relative overflow-hidden rounded-t-2xl bg-gradient-to-b from-gray-50 to-white">
-          
-          {/* ========== CONTENEDOR DE IMAGEN PRINCIPAL ==========*/}
-          {/* Aspect ratio 4:3 fijo para mantener consistencia visual */}
           <div className="relative aspect-[4/3] overflow-hidden">
             <Link href={`/products/${product.slug}`} className="block h-full">
               <Image
-                // Lógica para mostrar imagen: array[índiceActual] o imagen por defecto
                 src={
-  Array.isArray(product.images) && product.images.length > 0
-    ? (product.images[currentImageIndex] || product.images[0]).url // <--- AÑADE .url AQUÍ
-    : '/placeholder.jpg'
-}
-                alt={product.name}
-                fill // Ocupa todo el contenedor padre manteniendo aspect ratio
-                className={`object-cover transition-all duration-700 group-hover:scale-110 ${
-                  imageLoaded ? 'opacity-100' : 'opacity-0' // Fade in suave cuando carga
+                  Array.isArray(product.images) && product.images.length > 0
+                    ? (product.images[currentImageIndex]?.url || product.images[0]?.url)
+                    : '/placeholder.jpg'
+                }
+                alt={product.images?.[currentImageIndex]?.alt || product.name}
+                fill
+                className={`object-contain transition-all duration-700 group-hover:scale-110 ${
+                  imageLoaded ? 'opacity-100' : 'opacity-0'
                 }`}
-                onLoad={() => setImageLoaded(true)} // Callback cuando la imagen termina de cargar
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Optimización responsive
+                onLoad={() => setImageLoaded(true)}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
-              
-              {/* Overlay oscuro que mejora la legibilidad de elementos sobre la imagen */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
             </Link>
 
-            {/* ========== BADGES INFORMATIVOS (Esquina superior izquierda) ==========*/}
             <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
-              {/* Badge de descuento - se muestra solo si existe precio original */}
-              {product.originalPrice && (
+              {discount > 0 && (
                 <Badge className="bg-gradient-to-r from-red-500 to-red-600 text-white font-bold shadow-lg transform hover:scale-105 transition-transform">
                   -{discount}%
                 </Badge>
               )}
-              {/* Badge de stock bajo - alerta cuando quedan menos de 5 unidades */}
               {product.stock < 5 && product.stock > 0 && (
                 <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium shadow-lg">
                   ¡Últimas {product.stock}!
@@ -87,43 +101,42 @@ export default function ProductCard({ product }: ProductCardProps) {
               )}
             </div>
 
-            {/* ========== INDICADORES DE GALERÍA DE IMÁGENES ==========*/}
-            {/* Solo se muestran si hay más de 1 imagen */}
             {Array.isArray(product.images) && product.images.length > 1 && (
-              <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                {product.images.map((_, index) => (
+              <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                {product.images.map((image, index) => (
                   <button
-                    key={index}
-                    className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    key={image.id}
+                    className={`w-2.5 h-2.5 rounded-full transition-all duration-200 border border-white/50 shadow-md ${
                       index === currentImageIndex 
-                        ? 'bg-white shadow-lg scale-125' // Punto activo (imagen actual)
-                        : 'bg-white/60 hover:bg-white/80' // Puntos inactivos
+                        ? 'bg-white scale-125' 
+                        : 'bg-white/60 hover:bg-white/80'
                     }`}
-                    onMouseEnter={() => setCurrentImageIndex(index)} // Cambia imagen al pasar mouse
+                    onMouseEnter={() => setCurrentImageIndex(index)}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrentImageIndex(index);}}
+                    aria-label={`Ver imagen ${index + 1}`}
                   />
                 ))}
               </div>
             )}
-
-            {/* ========== BOTONES DE ACCIÓN FLOTANTES ==========*/}
-            {/* Aparecen con animación desde la derecha en hover */}
             <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
-              {/* Botón de favoritos con animación de deslizamiento */}
               <div className={`transform transition-all duration-300 ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}>
-                <Button
-                  size="sm"
-                  variant="secondary"
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
                   className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+                  title="Añadir a favoritos" // Añadir title para accesibilidad
+                  // onClick={handleAddToWishlist} // Necesitarías este handler
                 >
                   <Heart className="w-4 h-4 text-gray-700" />
                 </Button>
               </div>
-              {/* Botón de vista rápida con delay de 100ms en la animación */}
               <div className={`transform transition-all duration-300 delay-100 ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}>
-                <Button
-                  size="sm"
-                  variant="secondary"
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
                   className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+                  title="Vista rápida" // Añadir title
+                  // onClick={handleQuickView} // Necesitarías este handler
                 >
                   <Eye className="w-4 h-4 text-gray-700" />
                 </Button>
@@ -132,97 +145,85 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         </CardHeader>
 
-        {/* ========== CONTENIDO PRINCIPAL DE LA CARD ==========*/}
-        <CardContent className="p-5">
-          <div className="space-y-3">
-            
-            {/* Información de marca del producto */}
+        <CardContent className="p-4 space-y-2.5 flex-grow flex flex-col justify-between"> {/* flex-grow para que el contenido ocupe espacio */}
+          <div> {/* Contenedor para la info superior */}
             <p className="text-xs uppercase tracking-wide text-orange-500 font-semibold">
-              {product.brand || 'Houzze Tec'} {/* Fallback a marca por defecto */}
+              {product.brand || 'Houzze Tec'}
             </p>
-            
-            {/* Categoría del producto (se procesa con función utilitaria) */}
-            <span className="text-xs text-gray-500 capitalize block">
-              {getCategoryName(product.category)}
+            <span className="text-xs text-gray-500 capitalize block mt-0.5">
+              {product.category?.name || product.categorySlug || 'Sin Categoría'}
             </span>
-
-            {/* Título clickeable con efecto hover independiente */}
-            <Link href={`/products/${product.slug}`} className="block group/title">
-              <CardTitle className="text-lg font-bold text-gray-900 group-hover/title:text-orange-500 transition-colors duration-200 line-clamp-2 leading-tight">
+            <Link href={`/products/${product.slug}`} className="block group/title mt-1.5">
+              <CardTitle className="text-md font-bold text-gray-800 group-hover/title:text-orange-500 transition-colors duration-200 line-clamp-2 leading-snug min-h-[2.5rem]"> {/* min-h para consistencia en altura */}
                 {product.name}
               </CardTitle>
             </Link>
-
-            {/* ========== SISTEMA DE CALIFICACIÓN ==========*/}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center">
-                {/* Genera 5 estrellas, llenando según el rating */}
-                {[...Array(5)].map((_, i) => (
-                  <Star 
-                    key={i} 
-                    className={`w-4 h-4 transition-colors duration-200 ${
-                      i < Math.round(product.rating) 
-                        ? 'fill-amber-400 text-amber-400' // Estrellas llenas (doradas)
-                        : 'text-gray-300' // Estrellas vacías (grises)
-                    }`} 
-                  />
-                ))}
+          </div>
+          
+          <div> {/* Contenedor para rating y precio, para empujar al fondo si CardContent es flex-col */}
+            {typeof product.rating === 'number' && (
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <Star 
+                      key={i} 
+                      className={`w-3.5 h-3.5 transition-colors duration-200 ${
+                        i < Math.round(product.rating) 
+                          ? 'fill-amber-400 text-amber-400'
+                          : 'text-gray-300'
+                      }`} 
+                    />
+                  ))}
+                </div>
+                <span className="text-xs text-gray-600 font-medium">
+                  {product.rating.toFixed(1)}
+                </span>
+                <span className="text-xs text-gray-400">
+                  ({product.reviewsCount})
+                </span>
               </div>
-              {/* Rating numérico con 1 decimal */}
-              <span className="text-sm text-gray-600 font-medium">
-                {product.rating.toFixed(1)}
-              </span>
-              {/* Cantidad de reseñas entre paréntesis */}
-              <span className="text-xs text-gray-400">
-                ({product.reviewsCount})
-              </span>
-            </div>
+            )}
 
-            {/* ========== SECCIÓN DE PRECIOS ==========*/}
-            <div className="flex items-center gap-3">
-              {/* Precio actual con gradiente de colores llamativo */}
-              <p className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-                {/* Validación de tipo para evitar errores */}
-                {typeof product.price === 'number' ? `$${product.price.toFixed(2)}` : 'Precio no disponible'}
+            <div className="flex items-baseline gap-2 pt-2"> {/* Ajustado pt */}
+              <p className="text-xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+                {formatCurrencyCOP(product.price)}
               </p>
-              {/* Precio original tachado (solo si hay descuento) */}
-              {product.originalPrice && (
-                <p className="text-lg text-gray-400 line-through font-medium">
-                  ${product.originalPrice.toFixed(2)}
+              {product.originalPrice && product.originalPrice > product.price && (
+                <p className="text-sm text-gray-400 line-through">
+                  {formatCurrencyCOP(product.originalPrice)}
                 </p>
               )}
             </div>
           </div>
         </CardContent>
 
-        {/* ========== BOTONES DE ACCIÓN PRINCIPALES ==========*/}
-        <CardFooter className="p-5 pt-0">
+        <CardFooter className="p-4 pt-2"> {/* Ajustado padding */}
           <div className="flex gap-2 w-full">
-            {/* Botón principal para ver detalles del producto */}
             <Button
-              asChild // Permite que el botón contenga un Link
-              className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
+              asChild
+              className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 text-sm h-9"
             >
               <Link href={`/products/${product.slug}`}>
-                <Eye className="w-4 h-4 mr-2" />
+                <Eye className="w-3.5 h-3.5 mr-1.5" />
                 Ver Detalles
               </Link>
             </Button>
-            {/* Botón secundario para agregar al carrito (solo icono) */}
             <Button
               size="icon"
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 hover:border-gray-300 shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+              variant="outline"
+              className="border-gray-300 hover:bg-gray-100 text-gray-700 shadow-sm hover:shadow-md transform hover:scale-105 transition-all duration-200 h-9 w-9"
+              onClick={handleAddToCart} // <--- 4. ASIGNA EL HANDLER AQUÍ
+              disabled={product.stock === 0} // Opcional: deshabilitar si no hay stock
+              title="Agregar al carrito" // Añadir title
             >
               <ShoppingCart className="w-4 h-4" />
             </Button>
           </div>
         </CardFooter>
 
-        {/* ========== OVERLAY PARA PRODUCTOS AGOTADOS ==========*/}
-        {/* Se superpone a toda la card cuando stock = 0 */}
         {product.stock === 0 && (
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-2xl">
-            <Badge className="bg-red-600 text-white text-lg px-4 py-2">
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-2xl pointer-events-none">
+            <Badge className="bg-gray-600 text-white text-md px-4 py-2 shadow-xl">
               Agotado
             </Badge>
           </div>

@@ -403,3 +403,9 @@ export type DBImage = {
   orden: number;
   productoId?: number | null;
 };
+
+export type CartAction =
+  | { type: 'ADD_ITEM'; payload: Product }
+  | { type: 'REMOVE_ITEM'; payload: { id: string } }
+  | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
+  | { type: 'CLEAR_CART' };
