@@ -1,70 +1,84 @@
 // src/app/api/products/route.ts
 import { NextResponse } from 'next/server';
-import { db } from '../../../lib/db'; // Ajusta esta ruta a tu cliente Prisma
-import { mapProductos } from '../../../lib/mappers'; // Ajusta esta ruta a tus mappers
+import { db } from '../../../lib/db'; // Adjust path to your Prisma client
+import { mapProductos } from '../../../lib/mappers'; // Adjust path to your mappers
+import { Prisma } from '@prisma/client'; // Import Prisma for more specific types
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const category = searchParams.get('category');
-    const brand = searchParams.get('brand');
-    const minPrice = searchParams.get('minPrice');
-    const maxPrice = searchParams.get('maxPrice');
-    const search = searchParams.get('search');
-    const sort = searchParams.get('sort');
-    // const page = parseInt(searchParams.get('page') || '1', 10); // Ejemplo para paginación
-    // const limit = parseInt(searchParams.get('limit') || '10', 10); // Ejemplo para paginación
+    const categorySlug = searchParams.get('category');
+    const brandName = searchParams.get('brand');
+    const minPriceParam = searchParams.get('minPrice');
+    const maxPriceParam = searchParams.get('maxPrice');
+    const searchQuery = searchParams.get('search');
+    const sortBy = searchParams.get('sort');
+    const isFeatured = searchParams.get('featured'); // For featured products
+    const isOnSale = searchParams.get('on_sale');   // For products on sale
 
-    const whereConditions: any = {}; // Para mejor tipado, podrías usar Prisma.ProductoWhereInput
+    // Define a more specific type for whereConditions
+    const whereConditions: Prisma.ProductoWhereInput = {};
 
-    if (category && category !== 'all') {
+    if (categorySlug && categorySlug !== 'all') {
       whereConditions.categoria = {
-        slug: category,
+        slug: categorySlug,
       };
     }
 
-    if (brand && brand !== 'all') {
-      whereConditions.marca = { // Campo 'marca' en Prisma
-        // Si 'brand' es un solo string y quieres coincidencia exacta:
-        // equals: brand,
-        // mode: 'insensitive', // si tu DB lo soporta y quieres case-insensitive
-        // O si 'brand' puede ser parte del nombre de la marca:
-        contains: brand,
+    if (brandName && brandName !== 'all') {
+      whereConditions.marca = {
+        contains: brandName,
         mode: 'insensitive',
       };
     }
 
-    if (minPrice) {
-      const parsedMinPrice = parseFloat(minPrice);
-      if (!isNaN(parsedMinPrice)) {
-        whereConditions.precio = { // Campo 'precio' en Prisma
-          ...(whereConditions.precio || {}),
-          gte: parsedMinPrice,
-        };
-      }
+    const minPrice = minPriceParam ? parseFloat(minPriceParam) : undefined;
+    const maxPrice = maxPriceParam ? parseFloat(maxPriceParam) : undefined;
+
+    if (minPrice !== undefined && !isNaN(minPrice)) {
+      whereConditions.precio = {
+        ...(whereConditions.precio as Prisma.DecimalFilter), // Type assertion
+        gte: minPrice,
+      };
     }
 
-    if (maxPrice) {
-      const parsedMaxPrice = parseFloat(maxPrice);
-      if (!isNaN(parsedMaxPrice)) {
-        whereConditions.precio = { // Campo 'precio' en Prisma
-          ...(whereConditions.precio || {}),
-          lte: parsedMaxPrice,
-        };
-      }
+    if (maxPrice !== undefined && !isNaN(maxPrice)) {
+      whereConditions.precio = {
+        ...(whereConditions.precio as Prisma.DecimalFilter), // Type assertion
+        lte: maxPrice,
+      };
     }
 
-    if (search) {
+    if (searchQuery) {
       whereConditions.OR = [
-        { nombre: { contains: search, mode: 'insensitive' } },
-        { descripcion: { contains: search, mode: 'insensitive' } },
-        { marca: { contains: search, mode: 'insensitive' } },
-        { etiquetas: { has: search } }, // Asumiendo que 'etiquetas' es String[] y quieres buscar una etiqueta exacta
+        { nombre: { contains: searchQuery, mode: 'insensitive' } },
+        { descripcion: { contains: searchQuery, mode: 'insensitive' } },
+        { marca: { contains: searchQuery, mode: 'insensitive' } },
+        { etiquetas: { has: searchQuery } }, // Assumes 'searchQuery' is a single tag to search for
       ];
     }
 
-    let orderBy: any = {}; // Para mejor tipado, Prisma.ProductoOrderByWithRelationInput
-    switch (sort) {
+    if (isFeatured === 'true') {
+      whereConditions.destacado = true;
+    }
+
+    if (isOnSale === 'true') {
+      // This identifies products that *could* be on sale by having an original price.
+      // The actual discount (precio < precioAnterior) is calculated by your mapper.
+      // For a stricter DB-level "on sale" filter, you'd ideally have an `enOferta: Boolean` field
+      // in your Producto model that you set when precio < precioAnterior.
+      whereConditions.precioAnterior = {
+        not: null,
+      };
+      // And to ensure there IS a discount (precio < precioAnterior), this is harder in Prisma directly.
+      // The mappers calculate discountPercentage, so the frontend can use that if needed.
+      // If you need to strictly filter by `precio < precioAnterior` at the DB level,
+      // it often requires a raw query or a dedicated 'enOferta' field.
+      // For now, we'll filter by items that *have* an originalPrice, implying they *might* be on sale.
+    }
+
+    let orderBy: Prisma.ProductoOrderByWithRelationInput | Prisma.ProductoOrderByWithRelationInput[] = {};
+    switch (sortBy) {
       case 'price-asc':
         orderBy = { precio: 'asc' };
         break;
@@ -72,37 +86,46 @@ export async function GET(request: Request) {
         orderBy = { precio: 'desc' };
         break;
       case 'rating-desc':
-        orderBy = { calificacion: 'desc' }; // Campo 'calificacion' en Prisma
+        orderBy = { calificacion: 'desc' }; // Prisma field name
         break;
       case 'name-asc':
         orderBy = { nombre: 'asc' };
         break;
-      default: // Por defecto, o si 'sort' no coincide o es 'default'
-        orderBy = { creadoEn: 'desc' }; // Campo 'creadoEn' en Prisma
+      default: // Default sort
+        orderBy = { creadoEn: 'desc' }; // Prisma field name
     }
 
-    // const skip = (page - 1) * limit; // Para paginación
+    // Example for pagination (you can uncomment and use if you pass page/limit params)
+    // const page = parseInt(searchParams.get('page') || '1', 10);
+    // const limit = parseInt(searchParams.get('limit') || '10', 10); // Default 10 items per page
+    // const skip = (page - 1) * limit;
 
     const productosDB = await db.producto.findMany({
       where: whereConditions,
       include: {
-        categoria: true, // Para que el mapper pueda acceder a los datos de categoría
-        imagenes: {      // Para que el mapper pueda acceder a las imágenes
-          orderBy: {
-            orden: 'asc' // Opcional: traer imágenes ordenadas
+        categoria: { // Ensure category data needed by mapper is included
+          include: {
+            _count: {
+              select: { productos: true }
+            }
           }
+        },
+        imagenes: {
+          orderBy: {
+            orden: 'asc',
+          },
         },
       },
       orderBy,
-      // take: limit, // Para paginación
-      // skip: skip,   // Para paginación
+      // take: limit, // For pagination
+      // skip: skip,   // For pagination
     });
 
-    // const totalProducts = await db.producto.count({ where: whereConditions }); // Para metadatos de paginación
+    // const totalProducts = await db.producto.count({ where: whereConditions }); // For pagination metadata
 
     const productosMapeados = mapProductos(productosDB);
 
-    // Para paginación, podrías devolver un objeto:
+    // For pagination, your response might look like:
     // return NextResponse.json({
     //   data: productosMapeados,
     //   pagination: {
@@ -112,13 +135,14 @@ export async function GET(request: Request) {
     //     totalPages: Math.ceil(totalProducts / limit),
     //   }
     // });
+
     return NextResponse.json(productosMapeados);
 
   } catch (error) {
-    console.error('[API_PRODUCTS_ERROR]', error); // Loguear el error en el servidor
-    // Enviar una respuesta de error más genérica al cliente
+    console.error('[API_PRODUCTS_GET_ERROR]', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido en el servidor.';
     return NextResponse.json(
-      { message: 'Error al obtener los productos.', errorDetails: (error instanceof Error) ? error.message : 'Error desconocido' },
+      { message: 'Error al obtener los productos.', errorDetails: errorMessage },
       { status: 500 }
     );
   }

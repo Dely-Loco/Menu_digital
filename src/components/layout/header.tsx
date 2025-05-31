@@ -94,7 +94,7 @@ export default function Header() {
                   Houzze Tec
                 </span>
                 <span className="text-xs text-gray-500 font-medium tracking-wider">
-                  INNOVACIÓN TECNOLÓGICA
+                  TECH INNOVATION STORE
                 </span>
               </div>
             </Link>
