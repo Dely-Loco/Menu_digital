@@ -6,7 +6,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
-import type { CartItem } from '@/types'; // Asegúrate de tener ProductImage si lo usas directamente
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';     // <--- IMPORTA LABEL
@@ -26,7 +25,7 @@ const formatCurrencyCOP = (value?: number): string => {
 };
 
 export default function CheckoutPage() {
-  const { items: cartItems, itemCount, total: cartTotal, dispatch } = useCart(); // <--- USA 'total' y renómbralo a cartTotal
+  const { items: cartItems, itemCount, total: cartTotal, } = useCart(); // <--- USA 'total' y renómbralo a cartTotal
   const router = useRouter();
 
   const [formData, setFormData] = useState({

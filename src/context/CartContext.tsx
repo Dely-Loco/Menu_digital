@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
-import type { Product, CartItem, CartState, CartAction, UIState } from '@/types'; // Asegúrate de importar UIState también
+import type { CartItem, CartState, CartAction, } from '@/types'; // Asegúrate de importar UIState también
 
 const CART_STORAGE_KEY = 'houzzeTecCart';
 

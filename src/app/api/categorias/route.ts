@@ -1,28 +1,33 @@
 // src/app/api/categorias/route.ts
 import { NextResponse } from 'next/server';
-import { db } from '../../../lib/db'; // Ajusta la ruta a tu cliente Prisma
-import { mapCategorias } from '../../../lib/mappers'; // <--- IMPORTA TU MAPPER
-import { Prisma } from '@prisma/client'; // Para tipos de Prisma si es necesario
+import { db } from '../../../lib/db';
+import { mapCategorias } from '../../../lib/mappers';
+import { Prisma } from '@prisma/client'; // <--- IMPORTA Prisma
+
+// Define el tipo para el resultado de tu consulta específica
+type CategoriaConConteoPayload = Prisma.CategoriaGetPayload<{
+  include: { _count: { select: { productos: true } } }
+}>;
 
 export async function GET() {
   try {
-    const dbCategorias = await db.categoria.findMany({
+    const dbCategorias: CategoriaConConteoPayload[] = await db.categoria.findMany({ // Tipa el resultado
       orderBy: {
-        creadoEn: 'asc', // O por 'nombre', como prefieras
+        creadoEn: 'asc',
       },
-      include: { // <--- AÑADIDO: Para que 'productsCount' funcione en el mapper
+      include: {
         _count: {
           select: { productos: true },
         },
       },
     });
 
-    // Mapea los datos al formato de tu aplicación
-    const categoriasMapeadas = mapCategorias(dbCategorias as any); // 'as any' es un atajo aquí, 
-                                                                 // o asegúrate que el tipo exacto
-                                                                 // de dbCategorias coincida con lo que espera mapCategorias
+    // Ahora mapCategorias debería aceptar dbCategorias si su parámetro
+    // en mappers.ts es compatible con CategoriaConConteoPayload[]
+    // (PrismaCategoria & { _count?: { productos: number } }) es compatible.
+    const categoriasMapeadas = mapCategorias(dbCategorias); 
 
-    return NextResponse.json(categoriasMapeadas); // Devuelve los datos mapeados
+    return NextResponse.json(categoriasMapeadas);
 
   } catch (error) {
     console.error('[API_CATEGORIAS_ERROR]', error);

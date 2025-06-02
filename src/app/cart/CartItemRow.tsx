@@ -4,7 +4,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import type { CartItem, ProductImage } from '@/types'; // Importa ProductImage si es necesario para claridad
+import type { CartItem, } from '@/types'; // Importa ProductImage si es necesario para claridad
 
 interface CartItemRowProps {
   item: CartItem;

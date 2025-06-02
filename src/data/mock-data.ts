@@ -1,5 +1,5 @@
 // @/data/mock-data.ts
-import type { Product, Category, BlogPost, ProductImage, ProductReview } from '@/types'; // Asegúrate de importar ProductImage y ProductReview
+import type { Product, Category, BlogPost, } from '@/types'; // Asegúrate de importar ProductImage y ProductReview
 
 // Enhanced Categories with more visual and marketing data
 export const categories: Category[] = [

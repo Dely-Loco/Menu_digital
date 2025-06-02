@@ -1,10 +1,25 @@
 // src/lib/queries.ts
-import { prisma } from "./prisma"; // Tu cliente Prisma
-import type { Product, Category, ProductImage, DBProduct, DBCategory, DBImage } from "@/types";
+import { prisma } from "./prisma";
+import type { Product, Category } from "@/types"; // Solo los tipos de la aplicación que devuelven estas funciones
 // IMPORTA TUS FUNCIONES DE MAPEO DESDE mappers.ts
-import { mapProductos, mapCategorias, formatProductFromDB, formatCategoryFromDB } from './mappers';
+import { mapProductos, mapCategorias, formatProductFromDB } from './mappers';
+import { Prisma } from "@prisma/client"; // Importar Prisma para tipos
 
-// Incluir _count para categoría cuando se fetchea un producto, porque formatCategoryFromDB lo usa
+// --- Definición de Tipos para Resultados de Prisma con Includes ---
+// Esto nos ayudará a evitar 'as any'
+type ProductoConRelaciones = Prisma.ProductoGetPayload<{
+  include: {
+    imagenes: { orderBy: { orden: 'asc' } };
+    categoria: { include: { _count: { select: { productos: true } } } };
+  }
+}>;
+
+type CategoriaConConteo = Prisma.CategoriaGetPayload<{
+  include: { _count: { select: { productos: true } } }
+}>;
+// --- Fin Definición de Tipos ---
+
+
 const defaultProductInclude = {
   imagenes: { orderBy: { orden: 'asc' } },
   categoria: { 
@@ -14,7 +29,6 @@ const defaultProductInclude = {
   },
 } as const;
 
-// Incluir _count para productos cuando se fetchean categorías
 const defaultCategoryInclude = {
   _count: { select: { productos: true } },
 } as const;
@@ -33,7 +47,9 @@ export async function getAllProducts(page = 1, limit = DEFAULT_PAGE_SIZE): Promi
       include: defaultProductInclude,
       orderBy: { creadoEn: 'desc' },
     });
-    return mapProductos(dbProducts as any); // Usa mapProductos
+    // Ahora dbProducts está mejor tipado, mapProductos debería aceptarlo
+    // si su firma en mappers.ts es compatible con ProductoConRelaciones[]
+    return mapProductos(dbProducts as ProductoConRelaciones[]);
   } catch (error) {
     console.error('Error fetching all products:', error);
     return [];
@@ -56,7 +72,8 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
       include: defaultProductInclude,
     });
     if (!dbProduct) return null;
-    return formatProductFromDB(dbProduct as any); // Usa formatProductFromDB directamente
+    // formatProductFromDB espera un tipo compatible con ProductoConRelaciones
+    return formatProductFromDB(dbProduct as ProductoConRelaciones);
   } catch (error) {
     console.error(`Error fetching product by slug (${slug}):`, error);
     return null;
@@ -71,31 +88,26 @@ export async function getFeaturedProducts(limit = DEFAULT_TAKE_LIMIT): Promise<P
       take: limit,
       orderBy: { creadoEn: 'desc' } 
     });
-    return mapProductos(dbProducts as any); // Usa mapProductos
+    return mapProductos(dbProducts as ProductoConRelaciones[]);
   } catch (error) {
     console.error('Error fetching featured products:', error);
     return [];
   }
 }
 
-// FUNCIÓN getAllCategories (asegúrate que esté exportada)
 export async function getAllCategories(): Promise<Category[]> {
   try {
     const dbCategories = await prisma.categoria.findMany({
       include: defaultCategoryInclude, 
       orderBy: { nombre: 'asc' },
     });
-    return mapCategorias(dbCategories as any); // Usa mapCategorias
+    return mapCategorias(dbCategories as CategoriaConConteo[]);
   } catch (error) {
     console.error('Error fetching all categories:', error);
     return [];
   }
 }
 
-// Aquí puedes añadir tus otras funciones de queries como:
-// getNewProducts, getBestsellerProducts, getProductsByCategory, searchProducts
-// Asegúrate de que todas ellas, después de obtener datos de Prisma, usen mapProductos o formatProductFromDB.
-// Por ejemplo:
 export async function getNewProducts(limit = DEFAULT_TAKE_LIMIT): Promise<Product[]> {
   try {
     const dbProductsNuevos = await prisma.producto.findMany({
@@ -104,10 +116,37 @@ export async function getNewProducts(limit = DEFAULT_TAKE_LIMIT): Promise<Produc
       take: limit,
       orderBy: { creadoEn: 'desc' }
     });
-    return mapProductos(dbProductsNuevos as any);
+    return mapProductos(dbProductsNuevos as ProductoConRelaciones[]);
   } catch (error) {
     console.error('Error fetching new products:', error);
     return [];
   }
 }
-// ... y así para las demás ...
+
+// Asumo que tienes getBestsellerProducts, getProductsByCategory, searchProducts
+// en otro lugar o los añadirás. Deben seguir el mismo patrón de llamar a mapProductos.
+// Por ejemplo, para searchProducts (del API route que ya teníamos):
+
+/*
+export async function searchProducts(
+  whereConditions: Prisma.ProductoWhereInput, // Recibe las condiciones ya construidas
+  orderBy: Prisma.ProductoOrderByWithRelationInput | Prisma.ProductoOrderByWithRelationInput[],
+  page = 1, // Opcional para paginación
+  limit = DEFAULT_PAGE_SIZE // Opcional para paginación
+): Promise<Product[]> {
+  try {
+    const skip = (page - 1) * limit;
+    const dbProducts = await prisma.producto.findMany({
+      where: whereConditions,
+      include: defaultProductInclude,
+      orderBy: orderBy,
+      take: limit,
+      skip: skip,
+    });
+    return mapProductos(dbProducts as ProductoConRelaciones[]);
+  } catch (error) {
+    console.error('Error searching products:', error);
+    return [];
+  }
+}
+*/

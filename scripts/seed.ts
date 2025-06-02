@@ -1,127 +1,138 @@
 // scripts/seed.ts
-
-// ✅ Importamos el cliente de Prisma y los datos simulados (mock)
 import { PrismaClient } from '@prisma/client';
-import { categories, products } from "@/data/mock-data";
+// Asumo que tus mock-data exportan categories y products con la estructura de tus tipos de app
+// (Product, Category, donde Product tiene images: ProductImage[])
+import { categories as mockCategories, products as mockProducts } from "@/data/mock-data"; 
+import type { Product as AppProduct, ProductImage as AppProductImage, Category as AppCategory } from '@/types';
 
-// ✅ Inicializamos Prisma
+
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Iniciando carga de datos...');
 
   try {
-    // ✅ Borramos todos los datos existentes en orden seguro
-    // (imagenes → productos → categorías) para evitar errores por relaciones
     console.log('🧹 Limpiando datos existentes...');
     await prisma.$transaction([
-      prisma.imagenProducto.deleteMany(),
+      prisma.imagen.deleteMany(),
       prisma.producto.deleteMany(),
       prisma.categoria.deleteMany(),
     ]);
 
-    // ✅ Creamos categorías usando los datos del mock
     console.log('📂 Creando categorías...');
+    // Asegúrate que 'mockCategories' tenga la estructura que espera Prisma Categoria o mapea los campos
     const createdCategories = await prisma.$transaction(
-      categories.map(category => 
+      mockCategories.map(category => 
         prisma.categoria.create({
           data: {
+            // Mapeo de campos de tu AppCategory a PrismaCategoria
             nombre: category.name,
             slug: category.slug,
             descripcion: category.description,
             imagen: category.image,
             icono: category.icon,
             color: category.color,
-            esPopular: category.isPopular, // 🔄 CORREGIDO: 'esPopular' en lugar de 'popular'
+            esPopular: category.isPopular,
+            // creadoEn se pone por defecto con @default(now()) en el schema
           }
         })
       )
     );
-    console.log(`✅ ${createdCategories.length} categorías creadas`);
+    console.log(`✅ ${createdCategories.length} categorías creadas.`);
 
-    // ✅ Creamos productos y sus imágenes asociados a su categoría
     console.log('🛍️ Creando productos...');
-    let createdProducts = 0;
-    let skippedProducts = 0;
+    let createdProductsCount = 0;
+    let skippedProductsCount = 0;
 
-    for (const product of products) {
-      // 🧐 Buscamos la categoría por slug
-      const categoria = await prisma.categoria.findUnique({
-  where: {
-    slug: typeof product.category === 'string'
-      ? product.category
-      : product.category?.slug
-  }
-});
+    for (const productData of mockProducts) { // productData es de tipo AppProduct
+      const categoriaSlug = typeof productData.category === 'string' 
+                            ? productData.category // Esto era de un mock antiguo, ahora productData.category es un objeto
+                            : productData.category?.slug || productData.categorySlug; // Usa categorySlug o category.slug
 
+      if (!categoriaSlug) {
+        console.log(`⚠️ Categoría o slug de categoría no definido para "${productData.name}". Omitiendo.`);
+        skippedProductsCount++;
+        continue;
+      }
+      
+      const categoriaDB = await prisma.categoria.findUnique({
+        where: { slug: categoriaSlug }
+      });
 
-      // ⚠️ Si no existe la categoría, omitimos el producto
-      if (!categoria) {
-        console.log(`⚠️  Categoría no encontrada para "${product.name}": ${product.category}`);
-        skippedProducts++;
+      if (!categoriaDB) {
+        console.log(`⚠️ Categoría con slug "${categoriaSlug}" no encontrada para el producto "${productData.name}". Omitiendo.`);
+        skippedProductsCount++;
         continue;
       }
 
-      // ✅ Creamos producto + imágenes en una transacción por seguridad
       await prisma.$transaction(async (tx) => {
         const nuevoProducto = await tx.producto.create({
           data: {
-            nombre: product.name,
-            slug: product.slug,
-            descripcion: product.description,
-            precio: product.price,
-            precioAnterior: product.originalPrice,
-            marca: product.brand,
-            rating: product.rating,
-            reviewsCount: product.reviewsCount, // 🔄 CAMPO QUE EXISTE en tu schema
-            stock: product.stock,
-            destacado: product.isFeatured,
-            categoriaId: categoria.id,
-            createdAt: new Date(), // 🕒 Puede omitirse, ya que tienes default(now())
+            nombre: productData.name,
+            slug: productData.slug,
+            descripcion: productData.description,
+            descripcionCorta: productData.shortDescription,
+            especificacionesTecnicas: productData.technicalSpec,
+            precio: productData.price, // Prisma maneja la conversión de number a Decimal
+            precioAnterior: productData.originalPrice,
+            marca: productData.brand,
+            stock: productData.stock,
+            calificacion: productData.rating,        // Mapeo de app.rating a prisma.calificacion
+            numeroReviews: productData.reviewsCount,
+            destacado: productData.isFeatured,
+            esNuevo: productData.isNew,
+            masVendido: productData.isBestseller,
+            etiquetas: productData.tags,           // Mapeo de app.tags a prisma.etiquetas
+            caracteristicas: productData.features,   // Mapeo de app.features a prisma.caracteristicas
+            colores: productData.colors,           // Mapeo de app.colors a prisma.colores
+            dimensiones: productData.dimensions,
+            peso: productData.weight,
+            garantia: productData.warranty,
+            // creadoEn se pone por defecto
+            categoriaId: categoriaDB.id,
           }
         });
 
-        // ✅ Creamos imágenes relacionadas al producto
-        await tx.imagenProducto.createMany({
-          data: product.images.map((imageUrl, index) => ({
-            url: imageUrl,
-            altText: `${product.name} - Imagen ${index + 1}`,
-            productoId: nuevoProducto.id,
-            orden: index,
-            principal: index === 0, // La primera imagen es principal
-          }))
-        });
-
-        createdProducts++;
-        console.log(`✅ Producto creado: ${product.name}`);
+        // Crear imágenes asociadas
+        if (productData.images && productData.images.length > 0) {
+          await tx.imagen.createMany({
+            data: productData.images.map((imageObj: AppProductImage) => ({ // imageObj es de tipo ProductImage
+              url: imageObj.url,         // <--- CORRECCIÓN AQUÍ
+              alt: imageObj.alt || `${productData.name} - Imagen ${imageObj.order + 1}`, // Usa el alt de imageObj
+              orden: imageObj.order,       // Usa el order de imageObj
+              productoId: nuevoProducto.id,
+            }))
+          });
+        }
+        createdProductsCount++;
+        console.log(`✅ Producto creado: ${productData.name}`);
       });
     }
 
     console.log('🎉 ¡Carga de datos completada!');
-
-    // 📊 Estadísticas finales para verificar resultados
     const [totalCategorias, totalProductos, totalImagenes] = await Promise.all([
       prisma.categoria.count(),
       prisma.producto.count(),
-      prisma.imagenProducto.count(),
+      prisma.imagen.count(),
     ]);
 
     console.log(`\n📊 Estadísticas:`);
     console.log(`   Categorías: ${totalCategorias}`);
-    console.log(`   Productos: ${totalProductos} (${skippedProducts} omitidos)`);
+    console.log(`   Productos: ${totalProductos} (${skippedProductsCount} omitidos)`);
     console.log(`   Imágenes: ${totalImagenes}`);
+
   } catch (error) {
-    console.error('❌ Error durante la carga:', error);
-    throw error;
+    console.error('❌ Error durante la carga de datos inicial (seed):', error);
+    throw error; // Re-lanza el error para que el proceso falle si hay un problema
   }
 }
 
-// 🧼 Ejecutamos main y manejamos errores y desconexión
 main()
   .catch((e) => {
-    console.error('❌ Error en el proceso:', e);
+    console.error('❌ Error fatal en el script de seed:', e);
     process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect(); // 🔌 Cerramos conexión con la base de datos
+    await prisma.$disconnect();
+    console.log('🌱 Carga de datos finalizada y conexión cerrada.');
   });

@@ -1,15 +1,15 @@
 // src/components/home/featured-products-slider.tsx
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // useMemo ya no se usaba
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Product } from '@/types'; // Solo Product es necesario aquí si ProductCard maneja el resto
-import { Button } from '@/components/ui/button'; // Importación de Button
+import type { Product } from '@/types';
+import { Button } from '@/components/ui/button';
 import ProductCard from '@/components/shared/product-card';
 
 interface FeaturedProductsSliderProps {
   products?: Product[];
-  itemsPerView?: { // Mantendremos el nombre 'itemsPerView' para la prop
+  itemsPerView?: {
     desktop: number;
     tablet: number;
     mobile: number;
@@ -21,64 +21,57 @@ interface FeaturedProductsSliderProps {
 
 const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
   products: propProducts,
-  itemsPerView = { desktop: 4, tablet: 2, mobile: 1 }, // Valor por defecto
+  itemsPerView = { desktop: 4, tablet: 2, mobile: 1 },
   autoPlayInterval = 5000,
   showControls = true,
   showDots = true,
 }) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(true);
-  // El estado se inicializa con el valor desktop del objeto itemsPerView
   const [currentItemsPerView, setCurrentItemsPerView] = useState<number>(itemsPerView.desktop);
 
-  // Si HomePage siempre pasa 'products' reales, estos defaultProducts no son necesarios.
-  // const defaultProducts: Product[] = useMemo(() => [/* ... */], []); // Comentado como lo tenías
-  const productsToDisplay = propProducts || []; // Usar array vacío si propProducts es undefined
-
-  // Desestructura los valores de itemsPerView para usarlos en las dependencias del useEffect
+  const productsToDisplay = propProducts || [];
   const { desktop, tablet, mobile } = itemsPerView;
+
+  // --- TODOS LOS HOOKS DEBEN IR ANTES DE CUALQUIER RETURN CONDICIONAL ---
 
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
-      // Usa los valores desestructurados 'desktop', 'tablet', 'mobile'
-      if (width >= 1024) { // Asumiendo lg (desktop) es 1024px
+      if (width >= 1024) {
         setCurrentItemsPerView(desktop);
-      } else if (width >= 768) { // Asumiendo md (tablet) es 768px
+      } else if (width >= 768) {
         setCurrentItemsPerView(tablet);
       } else {
         setCurrentItemsPerView(mobile);
       }
     };
-
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [desktop, tablet, mobile]); // <--- USA LOS VALORES PRIMITIVOS COMO DEPENDENCIAS
+  }, [desktop, tablet, mobile]);
 
-  if (!productsToDisplay || productsToDisplay.length === 0) {
-    return <p className="text-center text-gray-500 py-8">No hay productos destacados para mostrar.</p>;
-  }
-
+  // maxIndex ahora se calcula aquí arriba
   const maxIndex = Math.max(0, productsToDisplay.length - currentItemsPerView);
 
   useEffect(() => {
-    if (!isAutoPlaying || productsToDisplay.length <= currentItemsPerView || maxIndex === 0 && productsToDisplay.length > 0) { // Ajuste para evitar autoPlay si solo hay una "página" de items
-        // Si maxIndex es 0 pero hay productos (ej. 3 productos, 4 por vista), no debería haber autoplay.
+    // Mover la condición de retorno temprano DENTRO del efecto si es para controlar el intervalo
+    if (!isAutoPlaying || productsToDisplay.length <= currentItemsPerView || (maxIndex === 0 && productsToDisplay.length > 0)) {
         if(productsToDisplay.length > currentItemsPerView) {
-            // procede con autoplay si hay más productos que los que se ven por vista
+            // Si hay más productos que los que se ven por vista, el autoplay puede continuar
+            // (a menos que isAutoPlaying sea false)
         } else {
-            return; // No autoplay si todos los productos caben en una vista
+            // No autoplay si todos los productos caben en una vista o no hay suficientes para "deslizar"
+            return; 
         }
     }
-    if (!isAutoPlaying) return; // Si isAutoPlaying es explícitamente false
+    if (!isAutoPlaying) return;
 
     const interval = setInterval(() => {
       setCurrentIndex(prev => (prev >= maxIndex ? 0 : prev + 1));
     }, autoPlayInterval);
     return () => clearInterval(interval);
   }, [isAutoPlaying, maxIndex, autoPlayInterval, productsToDisplay.length, currentItemsPerView]);
-
 
   const handlePrevious = useCallback(() => {
     setCurrentIndex(prev => prev <= 0 ? maxIndex : prev - 1);
@@ -87,6 +80,11 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
   const handleNext = useCallback(() => {
     setCurrentIndex(prev => prev >= maxIndex ? 0 : prev + 1);
   }, [maxIndex]);
+
+  // --- EL RETURN CONDICIONAL AHORA VA DESPUÉS DE TODOS LOS HOOKS ---
+  if (!productsToDisplay || productsToDisplay.length === 0) {
+    return <p className="text-center text-gray-500 py-8">No hay productos destacados para mostrar en este momento.</p>;
+  }
 
   return (
     <div

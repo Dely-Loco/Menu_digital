@@ -4,13 +4,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
-  ShoppingCart, User, Menu, Search, X, ChevronDown, 
+  ShoppingCart, Menu, Search, X, ChevronDown, 
   Zap, Smartphone, Headphones, Watch, Monitor 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/context/CartContext'; // <--- 1. IMPORTA useCart

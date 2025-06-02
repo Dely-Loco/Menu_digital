@@ -1,5 +1,4 @@
 // src/app/about/page.tsx
-import Image from 'next/image'; // Si quieres añadir alguna imagen
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {

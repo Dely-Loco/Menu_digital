@@ -1,6 +1,5 @@
 // src/app/page.tsx
 import Link from 'next/link';
-import Image from 'next/image'; // Importado por si acaso, aunque no se use directamente en este nivel
 import { ChevronDown, Sparkles, Zap, Shield, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FeaturedProductsSlider from '@/components/home/featured-products-slider';

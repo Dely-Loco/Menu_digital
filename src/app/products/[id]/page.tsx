@@ -11,14 +11,17 @@ const formatPrice = (price: number | undefined) => {
   return price.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 });
 };
 
+// ✅ CORREGIDO: params es ahora Promise en Next.js 15
 interface ProductPageParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
+// ✅ CORREGIDO: await params
 export default async function ProductDetailPage({ params }: ProductPageParams) {
-  const product = await getProductBySlug(params.id);
+  const resolvedParams = await params; // <- Await params primero
+  const product = await getProductBySlug(resolvedParams.id);
 
   if (!product) {
     notFound();
@@ -129,7 +132,7 @@ export default async function ProductDetailPage({ params }: ProductPageParams) {
   );
 }
 
-// Tus funciones generateStaticParams y generateMetadata se mantienen igual
+// ✅ CORRECTO: generateStaticParams sigue igual
 export async function generateStaticParams() {
   const productsData = await getAllProducts(); // Renombrado para evitar conflicto con el tipo 'Product'
   return productsData.map((p: Product) => ({ // Tipar p aquí
@@ -137,8 +140,10 @@ export async function generateStaticParams() {
   }));
 }
 
+// ✅ CORREGIDO: await params
 export async function generateMetadata({ params }: ProductPageParams) {
-  const product = await getProductBySlug(params.id);
+  const resolvedParams = await params; // <- Await params primero
+  const product = await getProductBySlug(resolvedParams.id);
 
   if (!product) {
     return { title: 'Producto no encontrado' };

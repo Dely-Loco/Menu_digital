@@ -243,7 +243,7 @@ const SelectWithSearch = React.forwardRef<
   onValueChange,
   className,
   ...props
-}, ref) => {
+},) => {
   const [searchValue, setSearchValue] = React.useState("");
   
   // Filtrar opciones basado en búsqueda

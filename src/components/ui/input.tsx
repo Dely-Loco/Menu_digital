@@ -1,7 +1,8 @@
 // src/components/ui/input.tsx
 import React from 'react';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+// ✅ Cambiado de interface a type alias
+type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
 /**
  * Componente Input personalizado.

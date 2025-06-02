@@ -7,346 +7,297 @@
  */
 export interface Product {
   // Identificadores básicos
-  id: string; // ID único del producto (convertido a string desde la BD)
-  name: string; // Nombre del producto
-  slug: string; // URL amigable (ej: "laptop-gaming-asus")
+  id: string;
+  name: string;
+  slug: string;
   
   // Descripciones del producto
-  description: string; // Descripción completa del producto
-  shortDescription?: string; // Descripción corta para tarjetas y vistas previas
-  technicalSpec?: string; // Especificaciones técnicas detalladas
+  description: string;
+  shortDescription?: string;
+  technicalSpec?: string;
   
   // Información de precios
-  price: number; // Precio actual del producto (convertido desde Decimal)
-  originalPrice?: number; // Precio original (antes de descuento)
-  discountPercentage?: number; // Porcentaje de descuento calculado
+  price: number;
+  originalPrice?: number;
+  discountPercentage?: number;
   
   // Categorización y marca
-  category?: Category; // Categoría del producto como objeto
-  categorySlug?: string; // Slug de la categoría para navegación
-  brand?: string; // Marca del producto
+  category?: Category;
+  categorySlug?: string;
+  brand?: string;
   
   // Multimedia y calificaciones
-  images: ProductImage[]; // Array de imágenes del producto
-  rating: number; // Calificación promedio del producto
-  reviewsCount: number; // Número total de reseñas
+  images: ProductImage[];
+  rating: number;
+  reviewsCount: number;
   
   // Inventario y etiquetas especiales
-  stock: number; // Cantidad disponible en inventario
-  isFeatured: boolean; // Si el producto está destacado
-  isNew: boolean; // Etiqueta de producto nuevo
-  isBestseller: boolean; // Etiqueta de producto más vendido
-  tags: string[]; // Etiquetas para filtrado y búsqueda
-  dataAiHint?: string; // Pista para sistemas de IA/búsqueda
+  stock: number;
+  isFeatured: boolean;
+  isNew: boolean;
+  isBestseller: boolean;
+  tags: string[];
+  dataAiHint?: string;
   
   // Detalles mejorados del producto
-  features: string[]; // Lista de características principales
-  colors: string[]; // Colores disponibles
-  dimensions?: string; // Dimensiones físicas del producto
-  weight?: string; // Peso del producto
-  warranty?: string; // Período de garantía
-  shippingInfo?: string; // Información de envío
+  features: string[];
+  colors: string[];
+  dimensions?: string;
+  weight?: string;
+  warranty?: string;
+  shippingInfo?: string;
   
   // Datos de interacción del usuario (manejados en frontend)
-  inWishlist?: boolean; // Si está en la lista de deseos del usuario
-  compareCount?: number; // Cuántos usuarios están comparando este producto
+  inWishlist?: boolean;
+  compareCount?: number;
   
   // Sistema de reseñas mejorado
-  reviews?: ProductReview[]; // Array de reseñas del producto
+  reviews?: ProductReview[];
   
   // Metadatos
-  createdAt?: string; // Fecha de creación
+  createdAt?: string;
 }
 
 /**
  * Interfaz para las imágenes de productos
- * Define la estructura de las imágenes asociadas a productos
  */
 export interface ProductImage {
-  id: string; // ID único de la imagen
-  url: string; // URL de la imagen
-  alt?: string; // Texto alternativo para accesibilidad
-  order: number; // Orden de visualización
-  isPrimary?: boolean; // Si es la imagen principal (calculado desde orden === 0)
+  id: string;
+  url: string;
+  alt?: string;
+  order: number;
+  isPrimary?: boolean;
 }
 
 /**
  * Interfaz para las categorías de productos
- * Define la estructura jerárquica de organización de productos
  */
 export interface Category {
-  // Identificadores básicos
-  id: string; // ID único de la categoría (convertido a string desde la BD)
-  name: string; // Nombre de la categoría
-  slug: string; // URL amigable de la categoría
-  description?: string; // Descripción de la categoría
-  image?: string; // URL de imagen representativa
-  dataAiHint?: string; // Pista para sistemas de IA
-  
-  // Datos mejorados de categoría
-  icon?: string; // Emoji o icono para representar la categoría
-  color?: string; // Color de marca asociado a la categoría
-  productsCount?: number; // Número de productos en esta categoría
-  isPopular: boolean; // Si es una categoría popular
-  
-  // Para mega menús y navegación
-  subcategories?: Category[]; // Subcategorías anidadas (futuro uso)
-  featuredProducts?: string[]; // IDs de productos destacados en esta categoría
-  
-  // Metadatos
-  createdAt?: string; // Fecha de creación
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  image?: string;
+  dataAiHint?: string;
+  icon?: string;
+  color?: string;
+  productsCount?: number;
+  isPopular: boolean;
+  subcategories?: Category[];
+  featuredProducts?: string[];
+  createdAt?: string;
 }
 
 /**
  * Interfaz para las reseñas de productos
- * Define la estructura de las opiniones y comentarios de usuarios
  */
 export interface ProductReview {
-  id: string; // ID único de la reseña
-  user: string; // Nombre del usuario que escribió la reseña
-  rating: number; // Calificación dada por el usuario (1-5 estrellas)
-  comment: string; // Comentario textual del usuario
-  date: string; // Fecha de la reseña
-  verified: boolean; // Si la compra está verificada
-  helpful?: number; // Número de votos "útil" recibidos
-  images?: string[]; // Imágenes adjuntas a la reseña
+  id: string;
+  user: string;
+  rating: number;
+  comment: string;
+  date: string; // Considerar Date si se maneja en el cliente, o string ISO
+  verified: boolean;
+  helpful?: number;
+  images?: string[];
 }
 
 /**
  * Interfaz para las entradas del blog
- * Define la estructura de artículos y contenido editorial
  */
 export interface BlogPost {
-  // Identificadores y contenido básico
-  id: string; // ID único del post
-  slug: string; // URL amigable del artículo
-  title: string; // Título del artículo
-  excerpt: string; // Extracto o resumen
-  content: string; // Contenido completo del artículo
-  
-  // Información del autor
-  author: string; // Nombre del autor
-  authorTitle?: string; // Cargo/título del autor
-  authorImage?: string; // Imagen de perfil del autor
-  
-  // Metadatos temporales y multimedia
-  date: string; // Fecha de publicación (formato ISO)
-  readTime?: string; // Tiempo estimado de lectura
-  imageUrl?: string; // Imagen principal del artículo
-  tags?: string[]; // Etiquetas del artículo
-  dataAiHint?: string; // Pista para sistemas de IA
-  
-  // Datos mejorados del blog
-  category?: string; // Categoría del artículo
-  featured?: boolean; // Si es un artículo destacado
-  views?: number; // Número de visualizaciones
-  likes?: number; // Número de "me gusta"
-  
-  // SEO y redes sociales
-  metaDescription?: string; // Meta descripción para SEO
-  socialImage?: string; // Imagen para compartir en redes sociales
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  author: string;
+  authorTitle?: string;
+  authorImage?: string;
+  date: string; // Formato ISO
+  readTime?: string;
+  imageUrl?: string;
+  tags?: string[];
+  dataAiHint?: string;
+  category?: string;
+  featured?: boolean;
+  views?: number;
+  likes?: number;
+  metaDescription?: string;
+  socialImage?: string;
 }
 
 /**
  * Interfaz para elementos del carrito de compras
- * Extiende Product con información específica del carrito
  */
 export interface CartItem extends Product {
-  quantity: number; // Cantidad seleccionada del producto
-  selectedColor?: string; // Color seleccionado (si aplica)
-  selectedSize?: string; // Talla seleccionada (si aplica)
-  addedAt: string; // Timestamp de cuándo se agregó al carrito
+  quantity: number;
+  selectedColor?: string;
+  selectedSize?: string;
+  addedAt: string; // Timestamp ISO string
 }
 
 /**
  * Interfaz para filtros de productos
- * Define los criterios de filtrado disponibles
  */
 export interface ProductFilters {
-  category?: string; // Filtrar por categoría (slug)
-  brand?: string; // Filtrar por marca
-  minPrice?: number; // Precio mínimo
-  maxPrice?: number; // Precio máximo
-  minRating?: number; // Calificación mínima
-  inStock?: boolean; // Solo productos en stock
-  isNew?: boolean; // Solo productos nuevos
-  isFeatured?: boolean; // Solo productos destacados
-  isBestseller?: boolean; // Solo productos más vendidos
-  colors?: string[]; // Filtrar por colores específicos
-  tags?: string[]; // Filtrar por etiquetas
+  category?: string;
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minRating?: number;
+  inStock?: boolean;
+  isNew?: boolean;
+  isFeatured?: boolean;
+  isBestseller?: boolean;
+  colors?: string[];
+  tags?: string[];
 }
 
 /**
  * Interfaz para resultados de búsqueda
- * Agrupa diferentes tipos de contenido encontrado
  */
 export interface SearchResult {
-  products: Product[]; // Productos encontrados
-  categories: Category[]; // Categorías encontradas
-  blogPosts: BlogPost[]; // Artículos de blog encontrados
-  totalResults: number; // Número total de resultados
+  products: Product[];
+  categories: Category[];
+  blogPosts: BlogPost[];
+  totalResults: number;
 }
 
 /**
  * Interfaz base para el estado de la UI
- * Maneja estados comunes de carga y errores
  */
 export interface UIState {
-  isLoading: boolean; // Si está cargando
-  error?: string; // Mensaje de error (si existe)
-  successMessage?: string; // Mensaje de éxito (si existe)
+  isLoading: boolean;
+  error?: string;
+  successMessage?: string;
 }
 
 /**
  * Interfaz para el estado del carrito de compras
- * Extiende UIState con funcionalidad específica del carrito
  */
 export interface CartState extends UIState {
-  items: CartItem[]; // Elementos en el carrito
-  total: number; // Total del carrito
-  itemCount: number; // Número total de elementos
-  isOpen: boolean; // Si el carrito está abierto/visible
+  items: CartItem[];
+  total: number;
+  itemCount: number;
+  isOpen: boolean;
 }
 
 /**
  * Interfaz para el estado de la lista de deseos
- * Maneja los productos guardados por el usuario
  */
 export interface WishlistState extends UIState {
-  items: Product[]; // Productos en la lista de deseos
-  itemCount: number; // Número de productos en la lista
+  items: Product[];
+  itemCount: number;
 }
 
 /**
  * Interfaz genérica para respuestas de API
- * Estandariza el formato de respuestas del servidor
  */
 export interface ApiResponse<T> {
-  success: boolean; // Si la operación fue exitosa
-  data?: T; // Datos devueltos (si los hay)
-  error?: string; // Mensaje de error (si existe)
-  message?: string; // Mensaje general de la respuesta
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
 }
 
 /**
  * Interfaz para respuestas paginadas de API
- * Extiende ApiResponse con información de paginación
  */
 export interface PaginatedResponse<T> extends ApiResponse<T[]> {
-  data: T[]; // Array de datos paginados
+  data: T[];
   pagination: {
-    page: number; // Página actual
-    limit: number; // Elementos por página
-    total: number; // Total de elementos
-    totalPages: number; // Total de páginas
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
   };
 }
 
-/**
- * Interfaz para formulario de contacto
- * Define los campos necesarios para contactar al sitio
- */
+// ... (Tus otras interfaces: ContactForm, NewsletterForm, ProductReviewForm, NavigationItem, MegaMenuData, Promotion, Banner están bien)
+// Solo las incluyo aquí por si necesitas el archivo completo para copiar y pegar.
+
 export interface ContactForm {
-  name: string; // Nombre del usuario
-  email: string; // Email de contacto
-  subject: string; // Asunto del mensaje
-  message: string; // Contenido del mensaje
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
 }
 
-/**
- * Interfaz para formulario de newsletter
- * Maneja suscripciones a boletines informativos
- */
 export interface NewsletterForm {
-  email: string; // Email para suscribirse
-  preferences?: string[]; // Preferencias de email (tipos de contenido)
+  email: string;
+  preferences?: string[];
 }
 
-/**
- * Interfaz para formulario de reseñas de productos
- * Define los campos para que usuarios dejen opiniones
- */
 export interface ProductReviewForm {
-  rating: number; // Calificación (1-5 estrellas)
-  title: string; // Título de la reseña
-  comment: string; // Comentario detallado
-  recommend: boolean; // Si recomienda el producto
-  images?: File[]; // Archivos de imagen adjuntos
+  rating: number;
+  title: string;
+  comment: string;
+  recommend: boolean;
+  images?: File[]; // File es un tipo global del navegador
 }
 
-/**
- * Interfaz para elementos de navegación
- * Define la estructura de menús y navegación del sitio
- */
 export interface NavigationItem {
-  id: string; // ID único del elemento
-  label: string; // Texto visible del enlace
-  href: string; // URL de destino
-  icon?: string; // Icono asociado
-  badge?: string; // Etiqueta especial ("Nuevo", "Oferta", etc.)
-  children?: NavigationItem[]; // Subelementos de navegación (menús desplegables)
+  id: string;
+  label: string;
+  href: string;
+  icon?: string; // Podría ser un componente React o un string para una clase de icono
+  badge?: string;
+  children?: NavigationItem[];
 }
 
-/**
- * Interfaz para datos de mega menú
- * Estructura compleja de navegación con contenido rico
- */
 export interface MegaMenuData {
-  categories: Category[]; // Categorías a mostrar en el mega menú
-  featuredProducts: Product[]; // Productos destacados
+  categories: Category[];
+  featuredProducts: Product[];
   promotions: {
-    title: string; // Título de la promoción
-    description: string; // Descripción de la promoción
-    image: string; // Imagen promocional
-    link: string; // Enlace a la promoción
+    title: string;
+    description: string;
+    image: string;
+    link: string;
   }[];
 }
 
-/**
- * Interfaz para promociones y ofertas
- * Define descuentos y campañas promocionales
- */
 export interface Promotion {
-  id: string; // ID único de la promoción
-  title: string; // Título de la promoción
-  description: string; // Descripción detallada
-  discountPercentage?: number; // Porcentaje de descuento
-  discountAmount?: number; // Cantidad fija de descuento
-  code?: string; // Código de cupón (si aplica)
-  validFrom: string; // Fecha de inicio de validez
-  validUntil: string; // Fecha de fin de validez
-  image?: string; // Imagen promocional
-  categories?: string[]; // Categorías aplicables
-  products?: string[]; // Productos específicos aplicables
-  isActive: boolean; // Si la promoción está activa
+  id: string;
+  title: string;
+  description: string;
+  discountPercentage?: number;
+  discountAmount?: number;
+  code?: string;
+  validFrom: string; // ISO Date string
+  validUntil: string; // ISO Date string
+  image?: string;
+  categories?: string[];
+  products?: string[];
+  isActive: boolean;
 }
 
-/**
- * Interfaz para banners promocionales
- * Define elementos gráficos promocionales en el sitio
- */
 export interface Banner {
-  id: string; // ID único del banner
-  title: string; // Título principal
-  subtitle?: string; // Subtítulo (opcional)
-  description?: string; // Descripción adicional
-  image: string; // Imagen principal del banner
-  mobileImage?: string; // Imagen optimizada para móviles
-  link?: string; // Enlace de destino al hacer clic
-  buttonText?: string; // Texto del botón de acción
-  position: 'hero' | 'category' | 'footer' | 'popup'; // Posición donde se muestra
-  isActive: boolean; // Si el banner está activo
-  priority: number; // Orden de visualización (mayor prioridad = se muestra primero)
+  id: string;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  image: string;
+  mobileImage?: string;
+  link?: string;
+  buttonText?: string;
+  position: 'hero' | 'category' | 'footer' | 'popup';
+  isActive: boolean;
+  priority: number;
 }
 
-// ===== TIPOS ESPECÍFICOS DE PRISMA =====
+
+// ===== TIPOS ESPECÍFICOS DE PRISMA (ACTUALIZADOS) =====
 // Estos tipos representan exactamente lo que viene de la BD
+
+// Tipo para representar un Prisma Decimal que puede ser null
+type PrismaDecimalNullable = string | number | { toString(): string } | null;
+// Tipo para representar un Prisma Decimal que no es null
+type PrismaDecimalNonNullable = string | number | { toString(): string };
 
 /**
  * Tipo que representa un producto tal como viene de Prisma
- * Usado internamente en las queries
  */
-
 export type DBProduct = {
   id: number;
   nombre: string;
@@ -354,24 +305,24 @@ export type DBProduct = {
   descripcion: string;
   descripcionCorta?: string | null;
   especificacionesTecnicas?: string | null;
-  precio: any; // Prisma Decimal
-  precioAnterior?: any | null; // Prisma Decimal
-  marca?: string;
+  precio: PrismaDecimalNonNullable; // CAMBIO: Antes 'any'
+  precioAnterior?: PrismaDecimalNullable; // CAMBIO: Antes 'any | null'
+  marca?: string | null; // CAMBIO: Asegurar que permita null
   stock: number;
-  calificacion?: any | null; // ANTES: rating. (Prisma Decimal)
+  calificacion?: PrismaDecimalNullable; // CAMBIO: Antes 'any | null'
   numeroReviews: number;
   destacado: boolean;
   esNuevo: boolean;
   masVendido: boolean;
-  etiquetas: string[];       // ANTES: tags
+  etiquetas: string[];
   caracteristicas: string[];
   colores: string[];
   dimensiones?: string | null;
   peso?: string | null;
   garantia?: string | null;
-  creadoEn: Date;            // ANTES: createdAt
+  creadoEn: Date;
   categoriaId?: number | null;
-  categoria?: DBCategory | null; // Este DBCategory también debe estar actualizado
+  categoria?: DBCategory | null;
   imagenes: DBImage[];
 };
 
@@ -384,10 +335,10 @@ export type DBCategory = {
   slug: string;
   descripcion?: string | null;
   imagen?: string | null;
-  icono?: string | null;
-  color?: string | null;
+  icono?: string | null; // Permitir null si es opcional
+  color?: string | null;  // Permitir null si es opcional
   esPopular: boolean;
-  creadoEn: Date;            // ANTES: createdAt
+  creadoEn: Date;
   _count?: {
     productos: number;
   };
@@ -399,13 +350,14 @@ export type DBCategory = {
 export type DBImage = {
   id: number;
   url: string;
-  alt?: string | null;
+  alt?: string | null; // Permitir null si es opcional
   orden: number;
   productoId?: number | null;
 };
 
+// Tipo para las acciones del carrito (ya lo tenías bien)
 export type CartAction =
-  | { type: 'ADD_ITEM'; payload: Product }
+  | { type: 'ADD_ITEM'; payload: Product } // El reducer convierte esto a CartItem
   | { type: 'REMOVE_ITEM'; payload: { id: string } }
   | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
   | { type: 'CLEAR_CART' };
