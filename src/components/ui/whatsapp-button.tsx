@@ -126,17 +126,20 @@ export default function WhatsAppButton({
           transform transition-all duration-300 ease-out origin-right
           ${isExpanded ? 'opacity-100 scale-100 translate-x-0' : 'opacity-0 scale-95 translate-x-2'}
         `}>
-          <div className="bg-white rounded-xl shadow-xl border border-gray-200/50 px-4 py-3 backdrop-blur-sm">
-            <div className="flex items-center gap-3 whitespace-nowrap">
-              <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
-                <MessageCircle className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">¿Necesitas ayuda?</p>
-                <p className="text-xs text-gray-600">Chatea con nosotros</p>
-              </div>
-            </div>
-          </div>
+         {/*
+<div className="bg-white rounded-xl shadow-xl border border-gray-200/50 px-4 py-3 backdrop-blur-sm">
+  <div className="flex items-center gap-3 whitespace-nowrap">
+    <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
+      <MessageCircle className="w-4 h-4 text-white" />
+    </div>
+    <div>
+      <p className="text-sm font-semibold text-gray-900">¿Necesitas ayuda?</p>
+      <p className="text-xs text-gray-600">Chatea con nosotros</p>
+    </div>
+  </div>
+</div>
+*/}
+
           {/* Flecha */}
           <div className="absolute left-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[6px] border-l-white"></div>
         </div>

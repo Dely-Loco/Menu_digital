@@ -356,7 +356,7 @@ export type DBProduct = {
   especificacionesTecnicas?: string | null;
   precio: any; // Prisma Decimal
   precioAnterior?: any | null; // Prisma Decimal
-  marca?: string | null;
+  marca?: string;
   stock: number;
   calificacion?: any | null; // ANTES: rating. (Prisma Decimal)
   numeroReviews: number;

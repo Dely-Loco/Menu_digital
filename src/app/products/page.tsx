@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, RefreshCw, XCircle } from "lucide-react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { Label } from "@/components/ui/label";
 
 // Hook useDebounce
 function useDebounce(value: string, delay = 500) {
@@ -29,11 +30,24 @@ function useDebounce(value: string, delay = 500) {
   return debounced;
 }
 
+// Helper para formatear precios (si no lo tienes global)
+const formatCurrencyCOP = (value?: number): string => {
+  if (typeof value !== 'number') return '$0';
+  return value.toLocaleString('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+};
+
+
 export default function ProductsPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParamsHook = useSearchParams();
 
+  // Leer parámetros de la URL en cada renderización para sincronización
   const urlSearchQuery = searchParamsHook.get("search") || "";
   const urlCategory = searchParamsHook.get("category") || "all";
   const urlBrand = searchParamsHook.get("brand") || "all";
@@ -41,6 +55,7 @@ export default function ProductsPage() {
   const urlMinPrice = searchParamsHook.get("minPrice") || "";
   const urlMaxPrice = searchParamsHook.get("maxPrice") || "";
 
+  // Estados locales para los filtros
   const [selectedCategory, setSelectedCategory] = useState(urlCategory);
   const [selectedSort, setSelectedSort] = useState(urlSort);
   const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
@@ -48,73 +63,56 @@ export default function ProductsPage() {
   const [maxPrice, setMaxPrice] = useState(urlMaxPrice);
   const [selectedBrand, setSelectedBrand] = useState(urlBrand);
 
+  // Estados para datos y UI
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<{ slug: string; name: string }[]>([]);
   const [allBrands, setAllBrands] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setSearchQuery(urlSearchQuery);
-  }, [urlSearchQuery]);
 
-  useEffect(() => {
-    setSelectedCategory(urlCategory);
-  }, [urlCategory]);
-
-  useEffect(() => {
-    setSelectedBrand(urlBrand);
-  }, [urlBrand]);
-
-  useEffect(() => {
-    setSelectedSort(urlSort);
-  }, [urlSort]);
-
-  useEffect(() => {
-    setMinPrice(urlMinPrice);
-  }, [urlMinPrice]);
-
-  useEffect(() => {
-    setMaxPrice(urlMaxPrice);
-  }, [urlMaxPrice]);
+  // Efectos para sincronizar estados con URL params
+  useEffect(() => { setSearchQuery(urlSearchQuery); }, [urlSearchQuery]);
+  useEffect(() => { setSelectedCategory(urlCategory); }, [urlCategory]);
+  useEffect(() => { setSelectedBrand(urlBrand); }, [urlBrand]);
+  useEffect(() => { setSelectedSort(urlSort); }, [urlSort]);
+  useEffect(() => { setMinPrice(urlMinPrice); }, [urlMinPrice]);
+  useEffect(() => { setMaxPrice(urlMaxPrice); }, [urlMaxPrice]);
 
   const debouncedSearch = useDebounce(searchQuery);
 
+  // Carga inicial de categorías y marcas
   useEffect(() => {
-    console.log(">>> debouncedSearch cambió a:", debouncedSearch);
-  }, [debouncedSearch]);
-
-  useEffect(() => {
-    // setLoading(true); // setLoading se maneja dentro de fetchProducts
-    fetch("/api/categorias")
+    setMounted(true); // Indicar que el componente ya se montó en el cliente
+    // Fetch de categorías
+    fetch("/api/categorias") // Corregido a /api/categorias
       .then((res) => {
-        if (!res.ok) throw new Error('Error al cargar categorías');
+        if (!res.ok) { console.error("Error status categorías:", res.status); throw new Error('Error al cargar categorías');}
         return res.json();
       })
       .then(setCategories)
       .catch(err => {
         console.error("Error fetching categories:", err);
-        // No establecer error principal aquí para no sobrescribir error de productos
+        // Podrías establecer un error específico para categorías si quieres
       });
     
-    fetch("/api/brands")
+    // Fetch de marcas
+    fetch("/api/brands") // Asumo que esta API existe y devuelve string[]
       .then((res) => {
-        if (!res.ok) throw new Error('Error al cargar marcas');
+        if (!res.ok) { console.error("Error status marcas:", res.status); throw new Error('Error al cargar marcas');}
         return res.json();
       })
       .then(setAllBrands)
       .catch(err => {
         console.error("Error fetching brands:", err);
       });
-  }, []);
+  }, []); // Se ejecuta solo una vez al montar
 
+  // Función para obtener productos filtrados
   const fetchProducts = useCallback(() => {
-    console.log(">>> fetchProducts useCallback SE RE-CREÓ. Dependencias:", {
-      selectedCategory, selectedBrand, minPrice, maxPrice, debouncedSearch, selectedSort
-    });
     setLoading(true);
     setError(null);
-    console.log(">>> fetchProducts CALLED. Current debouncedSearch:", debouncedSearch);
     
     const params = new URLSearchParams();
     if (selectedCategory !== "all") params.append("category", selectedCategory);
@@ -125,41 +123,40 @@ export default function ProductsPage() {
     if (selectedSort !== "default") params.append("sort", selectedSort);
 
     const queryString = params.toString();
-    if (typeof window !== 'undefined' && window.location.search !== (queryString ? `?${queryString}` : '')) {
+    // Actualizar URL solo si los parámetros han cambiado
+    if (mounted && typeof window !== 'undefined' && window.location.search !== (queryString ? `?${queryString}` : '')) {
         router.replace(`${pathname}${queryString ? `?${queryString}` : ''}`, { scroll: false });
     }
     
-    console.log('>>> Frontend: Parámetros enviados a /api/products:', queryString);
-
     fetch(`/api/products?${queryString}`)
       .then(async (res) => {
-        console.log('>>> Frontend: API Response Status:', res.status, 'OK?:', res.ok);
         if (!res.ok) {
           const errorBody = await res.text();
-          console.error('>>> Frontend: API Error Response Body:', errorBody);
+          console.error('Frontend: API Error Response Body para productos:', errorBody);
           throw new Error(`Error al cargar productos (estado: ${res.status})`);
         }
         return res.json();
       })
       .then((data) => {
-        console.log('>>> Frontend: Parsed JSON data:', data);
         setProducts(Array.isArray(data) ? data : []);
       })
       .catch((err) => {
-        console.error('>>> Frontend: Error en fetchProducts catch:', err);
-        setError(err.message || "Ocurrió un error inesperado cargando productos.");
+        console.error('Frontend: Error en fetchProducts catch:', err);
+        setError(err.message || "Ocurrió un error cargando productos.");
         setProducts([]);
       })
       .finally(() => setLoading(false));
   }, [
     selectedCategory, selectedBrand, minPrice, maxPrice, debouncedSearch,
-    selectedSort, pathname, router
+    selectedSort, pathname, router, mounted // Añadido mounted para evitar replace en el primer render del servidor
   ]);
 
+  // Efecto para recargar productos cuando los filtros cambian
   useEffect(() => {
-    console.log(">>> useEffect QUE LLAMA a fetchProducts SE DISPARÓ (porque fetchProducts cambió).");
-    fetchProducts();
-  }, [fetchProducts]);
+    if(mounted) { // Solo fetchear productos si el componente está montado
+        fetchProducts();
+    }
+  }, [fetchProducts, mounted]); // Ahora depende de mounted también
 
   const resetFilters = () => {
     setSelectedCategory("all");
@@ -168,100 +165,123 @@ export default function ProductsPage() {
     setMinPrice("");
     setMaxPrice("");
     setSelectedBrand("all");
+    // La URL se actualizará por fetchProducts
   };
 
+  // Si aún no se ha montado en el cliente, podrías mostrar un loader más genérico
+  // o simplemente no renderizar los filtros hasta que mounted sea true.
+  // Por ahora, el loader principal de 'loading' cubrirá esto.
+
   return (
-    <main className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center md:text-left">Nuestros Productos</h1>
+    <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center md:text-left">Nuestros Productos</h1>
       
-      <div className="mb-8 p-4 md:p-6 bg-white shadow-lg rounded-xl border border-gray-200">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end">
-          <div className="lg:col-span-2 xl:col-span-1">
-            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+      {/* Panel de Filtros */}
+      <div className="mb-10 p-4 md:p-6 bg-white shadow-xl rounded-2xl border border-gray-200/80">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12 items-end">
+          
+          {/* Búsqueda */}
+          <div className="lg:col-span-4 xl:col-span-3">
+            <Label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1.5">Buscar Producto</Label>
             <div className="relative">
-              <Input id="search" type="text" placeholder="Buscar por nombre, marca..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pr-10" />
+              <Input id="search" type="text" placeholder="Escribe nombre, marca, etiqueta..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pr-10 w-full text-sm py-2.5" />
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             </div>
           </div>
-          <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+          
+          {/* Categoría */}
+          <div className="lg:col-span-3 xl:col-span-2">
+            <Label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1.5">Categoría</Label>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger id="category"><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectTrigger id="category" className="w-full text-sm py-2.5"><SelectValue placeholder="Todas" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas las Categorías</SelectItem>
+                <SelectItem value="all">Seleccionar</SelectItem>
                 {categories.map((cat) => (<SelectItem key={cat.slug} value={cat.slug}>{cat.name}</SelectItem>))}
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <label htmlFor="brand" className="block text-sm font-medium text-gray-700 mb-1">Marca</label>
+          
+          {/* Marca */}
+          <div className="lg:col-span-3 xl:col-span-2">
+            <Label htmlFor="brand" className="block text-sm font-medium text-gray-700 mb-1.5">Marca</Label>
             <Select value={selectedBrand} onValueChange={setSelectedBrand}>
-              <SelectTrigger id="brand"><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectTrigger id="brand" className="w-full text-sm py-2.5"><SelectValue placeholder="Todas" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas las Marcas</SelectItem>
+                <SelectItem value="all">Seleccionar</SelectItem>
                 {allBrands.map((brandName) => (<SelectItem key={brandName} value={brandName}>{brandName}</SelectItem>))}
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <label htmlFor="sort" className="block text-sm font-medium text-gray-700 mb-1">Ordenar Por</label>
+          
+          {/* Ordenar Por */}
+          <div className="lg:col-span-2 xl:col-span-2">
+            <Label htmlFor="sort" className="block text-sm font-medium text-gray-700 mb-1.5">Ordenar Por</Label>
             <Select value={selectedSort} onValueChange={setSelectedSort}>
-              <SelectTrigger id="sort"><SelectValue placeholder="Defecto" /></SelectTrigger>
+              <SelectTrigger id="sort" className="w-full text-sm py-2.5"><SelectValue placeholder="Defecto" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="default">Defecto (Más recientes)</SelectItem>
+                <SelectItem value="default">Seleccionar</SelectItem>
                 <SelectItem value="price-asc">Precio: Menor a Mayor</SelectItem>
                 <SelectItem value="price-desc">Precio: Mayor a Menor</SelectItem>
-                <SelectItem value="rating-desc">Popularidad (Rating)</SelectItem>
+                <SelectItem value="rating-desc">Popularidad</SelectItem>
                 <SelectItem value="name-asc">Nombre: A a Z</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:col-span-2 lg:col-span-2 xl:col-span-1 items-end">
-            <div>
-              <label htmlFor="min-price" className="block text-sm font-medium text-gray-700 mb-1">Precio Mín.</label>
-              <Input id="min-price" type="number" placeholder="0" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
-            </div>
-            <div>
-              <label htmlFor="max-price" className="block text-sm font-medium text-gray-700 mb-1">Precio Máx.</label>
-              <Input id="max-price" type="number" placeholder="Cualquiera" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
-            </div>
+          
+          {/* Precio Mín. */}
+          <div className="xl:col-span-1">
+            <Label htmlFor="min-price" className="block text-sm font-medium text-gray-700 mb-1.5">$ Mín.</Label>
+            <Input id="min-price" type="number" placeholder="0" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} className="w-full text-sm py-2.5" />
           </div>
-           <Button onClick={resetFilters} variant="outline" className="sm:col-start-2 lg:col-start-auto xl:col-start-auto mt-4 sm:mt-0 self-end">
-              <XCircle className="mr-2 h-4 w-4" /> Limpiar Filtros
+
+          {/* Precio Máx. */}
+          <div className="xl:col-span-1">
+            <Label htmlFor="max-price" className="block text-sm font-medium text-gray-700 mb-1.5">$ Máx.</Label>
+            <Input id="max-price" type="number" placeholder="Cualquiera" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} className="w-full text-sm py-2.5" />
+          </div>
+          
+          {/* Botón Limpiar Filtros */}
+          <div className="lg:col-span-full xl:col-span-1 flex items-end"> {/* Ocupa todo el ancho en LG, luego se ajusta */}
+            <Button onClick={resetFilters} variant="outline" className="w-full text-sm py-2.5 border-gray-300 hover:bg-gray-100">
+                <XCircle className="mr-1.5 h-4 w-4" /> Limpiar
             </Button>
+          </div>
         </div>
       </div>
       
-      {/* =====> INICIO DE LA SECCIÓN DE RESULTADOS CORREGIDA <===== */}
-      {loading ? (
-        <div className="flex items-center justify-center min-h-[300px] py-10"> {/* Añadido py-10 para espaciado */}
+      {/* Sección de Resultados */}
+      {loading && !error && ( // Mostrar loader solo si está cargando y no hay error previo
+        <div className="flex flex-col items-center justify-center min-h-[300px] py-10 text-center">
           <RefreshCw className="h-10 w-10 text-orange-500 animate-spin" />
-          <p className="ml-3 text-lg text-gray-600">Cargando productos...</p> {/* Mensaje de carga */}
+          <p className="ml-3 mt-3 text-lg text-gray-600">Cargando productos...</p>
         </div>
-      ) : error ? (
+      )}
+      
+      {!loading && error && (
         <div className="text-center text-red-700 py-12 bg-red-50 p-6 rounded-lg shadow-md border border-red-200">
             <h2 className="font-semibold text-xl mb-2">¡Ups! Algo salió mal</h2>
             <p className="text-md">{error}</p>
             <p className="text-sm mt-4">Intenta refrescar la página o ajustar tus filtros.</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-8"> {/* Ajustado gap */}
+      )}
+      
+      {!loading && !error && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-8">
           {products.length > 0 ? (
             products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))
           ) : (
             <div className="col-span-full text-center py-16">
-              <Search className="mx-auto h-20 w-20 text-gray-400 mb-6" /> {/* Icono más grande */}
-              <h2 className="text-2xl font-semibold text-gray-800 mb-3">No se encontraron productos</h2>
-              <p className="text-gray-600 max-w-md mx-auto">
-                Intenta con diferentes palabras clave, categorías o ajustando los filtros de precio.
+              <Search className="mx-auto h-20 w-20 text-gray-300 mb-6" /> {/* Icono más sutil */}
+              <h2 className="text-2xl font-semibold text-gray-700 mb-3">No se encontraron productos</h2>
+              <p className="text-gray-500 max-w-md mx-auto">
+                Intenta con diferentes palabras clave o ajustando los filtros.
               </p>
             </div>
           )}
         </div>
       )}
-      {/* =====> FIN DE LA SECCIÓN DE RESULTADOS <===== */}
     </main>
   );
 }

@@ -1,138 +1,129 @@
-// src/lib/mappers.ts 
+// src/lib/mappers.ts
 import {
   Categoria as PrismaCategoria,
   Producto as PrismaProducto,
   Imagen as PrismaImagen
 } from '@prisma/client';
-import type { Category, Product, ProductImage, ProductReview } from '@/types'; // Asumo que ProductReview también está en tus types
+import type { Category, Product, ProductImage, ProductReview, DBCategory, DBProduct, DBImage } from '@/types'; // Importa todos los tipos necesarios
 
 // Helper para convertir Prisma Decimal a número de forma segura
 function toNumber(value: any): number | undefined {
   if (value === null || value === undefined) return undefined;
-  // Intentar convertir a número, si falla (ej. no es un string numérico válido), devuelve undefined
   const num = parseFloat(value.toString());
   return isNaN(num) ? undefined : num;
 }
 
-// Mapper para imágenes de productos
-export function mapProductImage(prismaImagen: PrismaImagen): ProductImage {
+const DEFAULT_PRODUCT_IMAGE_URL = 'https://placehold.co/600x600.png';
+const DEFAULT_CATEGORY_IMAGE_URL = 'https://placehold.co/400x300.png';
+
+export function formatProductImageFromDB(dbImage: DBImage): ProductImage {
   return {
-    id: prismaImagen.id.toString(),
-    url: prismaImagen.url,
-    alt: prismaImagen.alt ?? undefined,
-    order: prismaImagen.orden,
-    isPrimary: prismaImagen.orden === 0,
+    id: dbImage.id.toString(),
+    url: dbImage.url,
+    alt: dbImage.alt ?? undefined,
+    order: dbImage.orden,
+    isPrimary: dbImage.orden === 0,
   };
 }
 
-// Mapper para categorías
-export function mapCategoria(
-  // PrismaCategoria puede venir con _count si se incluye en la consulta
-  prismaCategoria: PrismaCategoria & { _count?: { productos: number } }
+export function formatCategoryFromDB(
+  dbCategory: DBCategory & { _count?: { productos: number } }
 ): Category {
   return {
-    id: prismaCategoria.id.toString(),
-    name: prismaCategoria.nombre,
-    slug: prismaCategoria.slug,
-    description: prismaCategoria.descripcion ?? undefined,
-    image: prismaCategoria.imagen ?? undefined, // URL de la imagen principal de la categoría
-    icon: prismaCategoria.icono ?? undefined,   // Puede ser un emoji, clase de icono, o URL corta
-    color: prismaCategoria.color ?? undefined,  // Color representativo
-    isPopular: prismaCategoria.esPopular,
-    productsCount: prismaCategoria._count?.productos ?? 0,
-    createdAt: prismaCategoria.creadoEn.toISOString(), // Campo de Prisma es creadoEn
-    dataAiHint: prismaCategoria.nombre.toLowerCase(), // Como lo tenías
-    // subcategories y featuredProducts no se mapean aquí por defecto, requerirían lógica adicional
+    id: dbCategory.id.toString(),
+    name: dbCategory.nombre, // Usa el campo 'nombre' de DBCategory
+    slug: dbCategory.slug,
+    description: dbCategory.descripcion ?? undefined,
+    image: dbCategory.imagen ?? DEFAULT_CATEGORY_IMAGE_URL,
+    icon: dbCategory.icono ?? undefined, 
+    color: dbCategory.color ?? undefined,
+    productsCount: dbCategory._count?.productos ?? 0,
+    isPopular: dbCategory.esPopular,
+    createdAt: dbCategory.creadoEn.toISOString(), // Usa 'creadoEn' de DBCategory
+    dataAiHint: (dbCategory.nombre || '').toLowerCase(),
   };
 }
 
-// Mapper para productos
-export function mapProducto(
-  // El tipo base es PrismaProducto, extendido con las relaciones que incluimos
-  prismaProducto: PrismaProducto & {
-    categoria?: PrismaCategoria | null; // La relación puede ser nula
-    imagenes?: PrismaImagen[];          // Puede ser un array vacío o no estar si no se incluye
+export function formatProductFromDB(
+  dbProduct: DBProduct & { 
+    categoria?: (DBCategory & { _count?: { productos: number } }) | null; 
+    imagenes?: DBImage[]; 
   }
-): Product {
-  const price = toNumber(prismaProducto.precio);
-  const originalPrice = toNumber(prismaProducto.precioAnterior);
+): Product | null {
+  if (!dbProduct) return null;
 
+  const price = toNumber(dbProduct.precio);
+  const originalPrice = toNumber(dbProduct.precioAnterior);
   let discountPercentage: number | undefined = undefined;
+
   if (originalPrice !== undefined && originalPrice > 0 && price !== undefined) {
     if (price < originalPrice) {
       discountPercentage = Math.round(((originalPrice - price) / originalPrice) * 100);
     } else {
-      discountPercentage = 0; // Sin descuento o precio igual/mayor
+      discountPercentage = 0;
     }
   }
 
-  // Asegúrate de que tu tipo Product en @/types tenga todos estos campos
+  const images: ProductImage[] = dbProduct.imagenes?.length
+    ? dbProduct.imagenes.map(formatProductImageFromDB) // Usa el mapper de imágenes
+    : [{
+        id: 'default-placeholder-0',
+        url: DEFAULT_PRODUCT_IMAGE_URL,
+        alt: dbProduct.nombre || 'Imagen de producto por defecto',
+        order: 0,
+        isPrimary: true,
+      }];
+
   return {
-    id: prismaProducto.id.toString(),
-    name: prismaProducto.nombre,
-    slug: prismaProducto.slug,
-    description: prismaProducto.descripcion,
-    shortDescription: prismaProducto.descripcionCorta ?? 
-      (prismaProducto.descripcion ? prismaProducto.descripcion.substring(0, 120) + '...' : undefined),
-    technicalSpec: prismaProducto.especificacionesTecnicas ?? undefined,
-    price: price ?? 0, // Default a 0 si el precio no es válido
+    id: dbProduct.id.toString(),
+    name: dbProduct.nombre,
+    slug: dbProduct.slug,
+    description: dbProduct.descripcion,
+    shortDescription: dbProduct.descripcionCorta ?? (dbProduct.descripcion ? dbProduct.descripcion.substring(0, 120) + '...' : undefined),
+    technicalSpec: dbProduct.especificacionesTecnicas ?? undefined,
+    price: price ?? 0,
     originalPrice: originalPrice,
     discountPercentage: discountPercentage,
-    category: prismaProducto.categoria ? mapCategoria(prismaProducto.categoria) : undefined,
-    categorySlug: prismaProducto.categoria?.slug,
-    brand: prismaProducto.marca ?? undefined,
-    images: prismaProducto.imagenes?.map(mapProductImage) ?? [], // Mapea a ProductImage[]
-    rating: toNumber(prismaProducto.calificacion) ?? 0, // Usa 'calificacion' de Prisma
-    reviewsCount: prismaProducto.numeroReviews,
-    stock: prismaProducto.stock,
-    isFeatured: prismaProducto.destacado,
-    isNew: prismaProducto.esNuevo,
-    isBestseller: prismaProducto.masVendido,
-    tags: prismaProducto.etiquetas || [], // Usa 'etiquetas' de Prisma
-    features: prismaProducto.caracteristicas || [],
-    colors: prismaProducto.colores || [],
-    dimensions: prismaProducto.dimensiones ?? undefined,
-    weight: prismaProducto.peso ?? undefined,
-    warranty: prismaProducto.garantia ?? undefined,
-    createdAt: prismaProducto.creadoEn.toISOString(), // Usa 'creadoEn' de Prisma
+    category: dbProduct.categoria ? formatCategoryFromDB(dbProduct.categoria) : undefined, // Usa el mapper de categoría
+    categorySlug: dbProduct.categoria?.slug,
+    brand: dbProduct.campoDePrismaQuePuedeSerNull ?? undefined, // Prisma: marca
+    images: images, // Ya es ProductImage[]
+    rating: toNumber(dbProduct.calificacion) ?? 0, // Prisma: calificacion
+    reviewsCount: dbProduct.numeroReviews,
+    stock: dbProduct.stock,
+    isFeatured: dbProduct.destacado,    // Prisma: destacado
+    isNew: dbProduct.esNuevo,          // Prisma: esNuevo
+    isBestseller: dbProduct.masVendido,// Prisma: masVendido
+    tags: dbProduct.etiquetas || [],     // Prisma: etiquetas
+    features: dbProduct.caracteristicas || [], // Prisma: caracteristicas
+    colors: dbProduct.colores || [],         // Prisma: colores
+    dimensions: dbProduct.dimensiones ?? undefined,
+    weight: dbProduct.peso ?? undefined,
+    warranty: dbProduct.garantia ?? undefined,
+    createdAt: dbProduct.creadoEn.toISOString(), // Prisma: creadoEn
     
-    // Campos adicionales de tu tipo Product que podrían no venir de este mapeo directo
-    dataAiHint: prismaProducto.nombre.toLowerCase().substring(0, 50), // Ejemplo
-    shippingInfo: 'Envío estándar gratuito', // Valor por defecto o lógica de negocio
-    inWishlist: false, // Usualmente manejado por el estado del cliente
-    compareCount: 0,   // Usualmente manejado por el estado del cliente
-    reviews: [],       // Las reseñas detalladas se cargarían por separado
+    // Campos que tu tipo Product puede tener y no vienen directamente de DBProduct base
+    dataAiHint: (dbProduct.nombre || '').toLowerCase().substring(0,50),
+    shippingInfo: 'Envío estándar gratuito (2-5 días)',
+    inWishlist: false, 
+    compareCount: 0,
+    reviews: [], // Las reseñas detalladas se cargarían por separado
   };
 }
 
-// Funciones para mapear arrays
+// Funciones para mapear arrays (wrappers)
 export function mapCategorias(
-  prismaCategorias: (PrismaCategoria & { _count?: { productos: number } })[]
+  prismaCategorias: (DBCategory & { _count?: { productos: number } })[]
 ): Category[] {
-  return prismaCategorias.map(mapCategoria);
+  // Filtra cualquier null que pueda venir de una relación opcional antes de mapear
+  return prismaCategorias.filter(Boolean).map(cat => formatCategoryFromDB(cat as any));
 }
 
-// Función genérica para mapProductos para manejar correctamente los 'includes'
 export function mapProductos<
-  T extends PrismaProducto & {
-    categoria?: PrismaCategoria | null;
-    imagenes?: PrismaImagen[];
-    // Añade aquí otras relaciones que podrías incluir en el futuro
+  T extends DBProduct & { // T es un tipo que extiende DBProduct
+    categoria?: (DBCategory & { _count?: { productos: number } }) | null;
+    imagenes?: DBImage[];
   }
 >(prismaProductos: T[]): Product[] {
-  return prismaProductos.map(p => mapProducto(p as any)); // 'as any' aquí puede ser necesario si TypeScript sigue estricto con T y la firma de mapProducto.
-                                                          // Una alternativa más segura es asegurar que mapProducto acepte T.
-                                                          // O, más explícito: prismaProductos.map(p => mapProducto(p)) si mapProducto acepta bien T.
-                                                          // Para la firma actual de mapProducto, esto debería funcionar:
-                                                          // return prismaProductos.map(p => mapProducto(p));
+  return prismaProductos.filter(Boolean).map(p => formatProductFromDB(p as any)).filter(Boolean) as Product[];
 }
-
-// Alternativa más simple para mapProductos si mapProducto ya está bien tipado:
-// export function mapProductos(
-//   prismaProductos: (PrismaProducto & {
-//     categoria?: PrismaCategoria | null;
-//     imagenes?: PrismaImagen[];
-//   })[]
-// ): Product[] {
-//   return prismaProductos.map(mapProducto);
-// }

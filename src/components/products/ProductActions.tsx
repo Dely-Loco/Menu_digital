@@ -95,13 +95,13 @@ export default function ProductActions({ product }: ProductActionsProps) {
         >
           {product.stock === 0 ? 'No disponible' : 'Agregar al carrito'}
         </Button>
-        <Button 
+        {/*<Button 
           className="w-full py-3 px-5 rounded-lg font-semibold text-gray-700 bg-gray-100 border border-gray-300 hover:bg-gray-200 transition-colors transform hover:scale-105 shadow-sm hover:shadow-md"
           aria-label="Agregar a lista de deseos"
           // onClick={handleAddToWishlist} // Necesitarías este handler
         >
           Agregar a lista de deseos
-        </Button>
+        </Button>*/}
       </div>
     </div>
   );
