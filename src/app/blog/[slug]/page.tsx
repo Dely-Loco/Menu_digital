@@ -8,22 +8,19 @@ import { CalendarDays, UserCircle, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { notFound } from 'next/navigation';
-import type { Metadata, } from 'next';
+import type { Metadata } from 'next';
 import type { BlogPost } from '@/types';
 
-// ✅ CORREGIDO: params es ahora Promise en Next.js 15
+// ✅ CORRECTO: Tipo simple, no Promise
 interface BlogPostPageParams {
-  params: Promise<{
+  params: {
     slug: string;
-  }>;
+  };
 }
 
-// ✅ CORREGIDO: await params
-export async function generateMetadata(
-  { params }: BlogPostPageParams,
-): Promise<Metadata> {
-  const resolvedParams = await params; // <- Await params primero
-  const post = await getBlogPostBySlug(resolvedParams.slug);
+// ✅ CORRECTO: Uso directo de params.slug
+export async function generateMetadata({ params }: BlogPostPageParams): Promise<Metadata> {
+  const post = await getBlogPostBySlug(params.slug);
 
   if (!post) {
     return {
@@ -47,17 +44,16 @@ export async function generateMetadata(
   };
 }
 
-// ✅ CORRECTO: generateStaticParams sigue igual
+// ✅ OK: generación de rutas estáticas
 export async function generateStaticParams() {
   return allBlogPosts.map((post: BlogPost) => ({
     slug: post.slug,
   }));
 }
 
-// ✅ CORREGIDO: await params
+// ✅ CORRECTO: uso de params directamente
 export default async function BlogPostDetailPage({ params }: BlogPostPageParams) {
-  const resolvedParams = await params; // <- Await params primero
-  const post = await getBlogPostBySlug(resolvedParams.slug);
+  const post = await getBlogPostBySlug(params.slug);
 
   if (!post) {
     notFound();
