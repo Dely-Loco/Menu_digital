@@ -69,6 +69,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.21",
+    "eslint": "^9.28.0",
     "genkit-cli": "^1.8.0",
     "postcss": "^8.5.3",
     "prisma": "^6.8.2",
