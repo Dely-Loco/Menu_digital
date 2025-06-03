@@ -11,16 +11,18 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import type { BlogPost } from '@/types';
 
-// ✅ CORRECTO: Tipo simple, no Promise
+// ✅ CORREGIDO: Tipo actualizado para Next.js 15
 interface BlogPostPageParams {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-// ✅ CORRECTO: Uso directo de params.slug
+// ✅ CORREGIDO: Ahora usa await params
 export async function generateMetadata({ params }: BlogPostPageParams): Promise<Metadata> {
-  const post = await getBlogPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getBlogPostBySlug(slug);
 
   if (!post) {
     return {
@@ -44,16 +46,17 @@ export async function generateMetadata({ params }: BlogPostPageParams): Promise<
   };
 }
 
-// ✅ OK: generación de rutas estáticas
+// ✅ OK: generación de rutas estáticas (sin cambios necesarios)
 export async function generateStaticParams() {
   return allBlogPosts.map((post: BlogPost) => ({
     slug: post.slug,
   }));
 }
 
-// ✅ CORRECTO: uso de params directamente
+// ✅ CORREGIDO: Función principal ahora usa await params
 export default async function BlogPostDetailPage({ params }: BlogPostPageParams) {
-  const post = await getBlogPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getBlogPostBySlug(slug);
 
   if (!post) {
     notFound();
