@@ -70,8 +70,6 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
-    /* Prevenir reflow - padding agregado para scroll bar */
-    padding-right: calc(1rem + 56px);
   }
 
   html {
@@ -161,11 +159,6 @@
   .animate-bounce-gentle {
     animation: bounceGentle 2s ease-in-out infinite;
   }
-
-  /* Nueva animación fade-in integrada */
-  .animate-fade-in {
-    animation: fade-in 0.5s ease-out forwards;
-  }
 }
 
 @keyframes float {
@@ -198,12 +191,6 @@
   50% { transform: translateY(-10px); }
 }
 
-/* Nueva animación fade-in integrada */
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 /* Responsive Typography */
 @layer base {
   h1 { @apply text-4xl md:text-5xl lg:text-6xl font-bold; }
@@ -226,18 +213,5 @@
 
   .button-hover-lift {
     @apply transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg;
-  }
-
-  /* Mejoras para el carrusel móvil integradas */
-  .featured-products-slider {
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
-/* Media Queries para Responsive Design */
-@media (max-width: 768px) {
-  body {
-    /* Ajuste del padding para móviles */
-    padding-right: calc(0.5rem + 48px);
   }
 }
