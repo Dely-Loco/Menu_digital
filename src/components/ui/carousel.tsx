@@ -143,51 +143,59 @@ export const CarouselNext = React.forwardRef<HTMLButtonElement, React.ComponentP
 ));
 CarouselNext.displayName = "CarouselNext";
 
-// Componente CarouselDots corregido
-export const CarouselDots = ({ 
-  api, 
-  className 
-}: { 
-  api: CarouselApi | undefined; 
-  className?: string 
-}) => {
+// Interface para CarouselDots
+interface CarouselDotsProps {
+  api: EmblaCarouselType | undefined;
+  className?: string;
+}
+
+// Componente CarouselDots mejorado
+export const CarouselDots = ({ api, className }: CarouselDotsProps) => {
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [scrollSnaps, setScrollSnaps] = React.useState<number[]>([]);
 
+  // Navegar al slide correspondiente
   const onDotClick = React.useCallback(
-    (index: number) => api && api.scrollTo(index),
+    (index: number) => api?.scrollTo(index),
     [api]
   );
 
+  // Sincronizar puntos con el slide actual
   React.useEffect(() => {
     if (!api) return;
     
-    setScrollSnaps(api.scrollSnapList());
+    const updateDots = () => {
+      setScrollSnaps(api.scrollSnapList());
+      setSelectedIndex(api.selectedScrollSnap());
+    };
     
-    const onSelect = () => setSelectedIndex(api.selectedScrollSnap());
-    api.on("select", onSelect);
+    api.on("select", updateDots);
+    updateDots(); // Inicializar
     
     return () => {
-      api.off("select", onSelect);
+      api.off("select", updateDots);
     };
   }, [api]);
 
   if (!api || scrollSnaps.length === 0) return null;
 
   return (
-    <div className={cn("flex justify-center gap-2 mt-4", className)}>
+    <div className={cn("flex justify-center gap-2", className)}>
       {scrollSnaps.map((_, index) => (
         <button
           key={index}
           onClick={() => onDotClick(index)}
-          className={`w-2 h-2 rounded-full transition-all ${
-            index === selectedIndex ? 'bg-primary' : 'bg-muted'
+          className={`w-2.5 h-2.5 rounded-full transition-all ${
+            index === selectedIndex 
+              ? "bg-orange-500 scale-125"  // Punto activo (usa tu color primario)
+              : "bg-gray-300"              // Puntos inactivos
           }`}
+          aria-label={`Ir al slide ${index + 1}`}
         />
       ))}
     </div>
   );
 };
 
-// Exportar el tipo CarouselApi para usar en otros componentes
-export type { CarouselApi };
+// Exportar tipos útiles
+export type { CarouselApi, CarouselDotsProps };
