@@ -219,7 +219,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               disabled={product.stock === 0}
               title="Agregar al carrito"
             >
-              <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:w-4" /> {/* Tamaño responsivo */}
+              <ShoppingCart className="w-3.5 h-3.5 sm:w-4" /> {/* Tamaño responsivo */}
             </Button>
           </div>
         </CardFooter>
