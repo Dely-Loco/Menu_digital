@@ -36,6 +36,11 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
   // Refs para evitar memory leaks
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Estados para touch/swipe
+  const [touchStart, setTouchStart] = useState<number>(0);
+  const [touchEnd, setTouchEnd] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
   // Memoizar productos para evitar re-renders innecesarios
   const productsToDisplay = useMemo(() => {
@@ -159,6 +164,94 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
     setIsAutoPlaying(true);
   }, []);
 
+  // Touch/Swipe handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    setTouchEnd(0); // Reset touchEnd
+    setTouchStart(e.targetTouches[0].clientX);
+    setIsDragging(true);
+    setIsAutoPlaying(false); // Pausar autoplay durante swipe
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDragging) return;
+    setTouchEnd(e.targetTouches[0].clientX);
+  }, [isDragging]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!isDragging || !touchStart || !touchEnd) {
+      setIsDragging(false);
+      setIsAutoPlaying(true);
+      return;
+    }
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && currentIndex < maxIndex) {
+      handleNext();
+    } else if (isRightSwipe && currentIndex > 0) {
+      handlePrevious();
+    }
+
+    setIsDragging(false);
+    setIsAutoPlaying(true);
+  }, [isDragging, touchStart, touchEnd, currentIndex, maxIndex, handleNext, handlePrevious]);
+
+  // Mouse drag handlers para desktop
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setTouchStart(e.clientX);
+    setIsDragging(true);
+    setIsAutoPlaying(false);
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setTouchEnd(e.clientX);
+  }, [isDragging]);
+
+  const handleMouseUp = useCallback(() => {
+    if (!isDragging || !touchStart || !touchEnd) {
+      setIsDragging(false);
+      setIsAutoPlaying(true);
+      return;
+    }
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && currentIndex < maxIndex) {
+      handleNext();
+    } else if (isRightSwipe && currentIndex > 0) {
+      handlePrevious();
+    }
+
+    setIsDragging(false);
+    setIsAutoPlaying(true);
+  }, [isDragging, touchStart, touchEnd, currentIndex, maxIndex, handleNext, handlePrevious]);
+
+  // Global mouse up handler para desktop
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        setIsDragging(false);
+        setIsAutoPlaying(true);
+      }
+    };
+
+    if (isDragging) {
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('mouseleave', handleGlobalMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('mouseleave', handleGlobalMouseUp);
+    };
+  }, [isDragging]);
+
   // Early return si no hay productos
   if (!productsToDisplay || productsToDisplay.length === 0) {
     return (
@@ -180,13 +273,27 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
       onMouseLeave={handleMouseLeave}
     >
       {/* Container principal con overflow hidden */}
-      <div className="overflow-hidden" ref={containerRef}>
+      <div 
+        className="overflow-hidden cursor-grab select-none" 
+        ref={containerRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        style={{ 
+          cursor: isDragging ? 'grabbing' : 'grab',
+          touchAction: 'pan-y pinch-zoom' // Permite scroll vertical pero previene horizontal
+        }}
+      >
         <div
-          className="flex transition-transform duration-500 ease-in-out will-change-transform"
+          className={`flex transition-transform duration-500 ease-in-out will-change-transform ${isDragging ? 'transition-none' : ''}`}
           style={{
             transform: `translateX(${translateX}%)`,
             backfaceVisibility: 'hidden', // Evita flickering
-            perspective: '1000px' // Mejora el rendering 3D
+            perspective: '1000px', // Mejora el rendering 3D
+            userSelect: 'none' // Previene selección de texto durante drag
           }}
         >
           {productsToDisplay.map((product, index) => (
