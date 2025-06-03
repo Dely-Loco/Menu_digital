@@ -6,10 +6,14 @@ import * as React from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import type { EmblaOptionsType } from "embla-carousel";
 import type { EmblaPluginType } from "embla-carousel";
+import type { EmblaCarouselType } from "embla-carousel";
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+
+// Definir el tipo CarouselApi
+type CarouselApi = EmblaCarouselType;
 
 interface CarouselProps {
   className?: string;
@@ -138,3 +142,52 @@ export const CarouselNext = React.forwardRef<HTMLButtonElement, React.ComponentP
   </Button>
 ));
 CarouselNext.displayName = "CarouselNext";
+
+// Componente CarouselDots corregido
+export const CarouselDots = ({ 
+  api, 
+  className 
+}: { 
+  api: CarouselApi | undefined; 
+  className?: string 
+}) => {
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const [scrollSnaps, setScrollSnaps] = React.useState<number[]>([]);
+
+  const onDotClick = React.useCallback(
+    (index: number) => api && api.scrollTo(index),
+    [api]
+  );
+
+  React.useEffect(() => {
+    if (!api) return;
+    
+    setScrollSnaps(api.scrollSnapList());
+    
+    const onSelect = () => setSelectedIndex(api.selectedScrollSnap());
+    api.on("select", onSelect);
+    
+    return () => {
+      api.off("select", onSelect);
+    };
+  }, [api]);
+
+  if (!api || scrollSnaps.length === 0) return null;
+
+  return (
+    <div className={cn("flex justify-center gap-2 mt-4", className)}>
+      {scrollSnaps.map((_, index) => (
+        <button
+          key={index}
+          onClick={() => onDotClick(index)}
+          className={`w-2 h-2 rounded-full transition-all ${
+            index === selectedIndex ? 'bg-primary' : 'bg-muted'
+          }`}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Exportar el tipo CarouselApi para usar en otros componentes
+export type { CarouselApi };

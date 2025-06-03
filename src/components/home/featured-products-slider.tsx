@@ -1,7 +1,6 @@
-// src/components/home/featured-products-slider.tsx
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react'; // useMemo ya no se usaba
+import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Product } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -33,8 +32,6 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
   const productsToDisplay = propProducts || [];
   const { desktop, tablet, mobile } = itemsPerView;
 
-  // --- TODOS LOS HOOKS DEBEN IR ANTES DE CUALQUIER RETURN CONDICIONAL ---
-
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
@@ -51,21 +48,10 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, [desktop, tablet, mobile]);
 
-  // maxIndex ahora se calcula aquí arriba
   const maxIndex = Math.max(0, productsToDisplay.length - currentItemsPerView);
 
   useEffect(() => {
-    // Mover la condición de retorno temprano DENTRO del efecto si es para controlar el intervalo
-    if (!isAutoPlaying || productsToDisplay.length <= currentItemsPerView || (maxIndex === 0 && productsToDisplay.length > 0)) {
-        if(productsToDisplay.length > currentItemsPerView) {
-            // Si hay más productos que los que se ven por vista, el autoplay puede continuar
-            // (a menos que isAutoPlaying sea false)
-        } else {
-            // No autoplay si todos los productos caben en una vista o no hay suficientes para "deslizar"
-            return; 
-        }
-    }
-    if (!isAutoPlaying) return;
+    if (!isAutoPlaying || productsToDisplay.length <= currentItemsPerView || maxIndex === 0) return;
 
     const interval = setInterval(() => {
       setCurrentIndex(prev => (prev >= maxIndex ? 0 : prev + 1));
@@ -81,32 +67,41 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
     setCurrentIndex(prev => prev >= maxIndex ? 0 : prev + 1);
   }, [maxIndex]);
 
-  // --- EL RETURN CONDICIONAL AHORA VA DESPUÉS DE TODOS LOS HOOKS ---
   if (!productsToDisplay || productsToDisplay.length === 0) {
     return <p className="text-center text-gray-500 py-8">No hay productos destacados para mostrar en este momento.</p>;
   }
 
   return (
     <div
-      className="relative"
+      className="relative group overflow-hidden"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >
-      <div
-        className="flex transition-transform duration-700 ease-out"
-        style={{
-          transform: `translateX(-${currentIndex * (100 / currentItemsPerView)}%)`
-        }}
-      >
-        {productsToDisplay.map((product) => (
+      {/* Contenedor principal con padding para evitar que los items toquen los bordes */}
+      <div className="px-4 md:px-6">
+        {/* Contenedor del carrusel con overflow hidden */}
+        <div className="relative overflow-hidden">
+          {/* Contenedor de los items con margen negativo para compensar el padding */}
           <div
-            key={product.id}
-            className="flex-shrink-0 px-2 md:px-3" 
-            style={{ width: `${100 / currentItemsPerView}%` }}
+            className="flex transition-transform duration-700 ease-out -mx-2"
+            style={{
+              transform: `translateX(-${currentIndex * (100 / currentItemsPerView)}%)`,
+            }}
           >
-            <ProductCard product={product} />
+            {productsToDisplay.map((product) => (
+              <div
+                key={product.id}
+                className="flex-shrink-0 px-2 md:px-3"
+                style={{ 
+                  width: `calc(${100 / currentItemsPerView}% - 16px)`,
+                  minWidth: `calc(${100 / currentItemsPerView}% - 16px)`
+                }}
+              >
+                <ProductCard product={product} />
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
 
       {showControls && productsToDisplay.length > currentItemsPerView && (
@@ -115,7 +110,7 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
             onClick={handlePrevious}
             variant="outline"
             size="icon"
-            className="absolute left-0 top-1/2 -translate-y-1/2 transform -translate-x-3 md:-translate-x-1/2 bg-white/80 hover:bg-white shadow-lg rounded-full p-2 z-20 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105"
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg rounded-full p-2 z-20 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105"
             disabled={currentIndex === 0}
             aria-label="Anterior"
           >
@@ -125,7 +120,7 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
             onClick={handleNext}
             variant="outline"
             size="icon"
-            className="absolute right-0 top-1/2 -translate-y-1/2 transform translate-x-3 md:translate-x-1/2 bg-white/80 hover:bg-white shadow-lg rounded-full p-2 z-20 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105"
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg rounded-full p-2 z-20 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105"
             disabled={currentIndex >= maxIndex}
             aria-label="Siguiente"
           >
@@ -133,6 +128,7 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
           </Button>
         </>
       )}
+
       {showDots && productsToDisplay.length > currentItemsPerView && (
         <div className="flex justify-center mt-6 space-x-2">
           {Array.from({ length: maxIndex + 1 }).map((_, index) => (
