@@ -13,62 +13,72 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/s
 import { useState, useEffect, } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useCart } from '@/context/CartContext'; // <--- 1. IMPORTA useCart
+import { useCart } from '@/context/CartContext'; // CONTEXTO DEL CARRITO - Para acceder al estado global del carrito
 
+// CONFIGURACIÓN DE NAVEGACIÓN - Define la estructura del menú principal
 const navLinks = [
   { href: '/', label: 'Inicio' },
   { 
     href: '/products', 
     label: 'Productos',
-    hasDropdown: true,
+    hasDropdown: true, // DROPDOWN DINÁMICO - Indica que este elemento tiene un menú desplegable
     dropdownItems: [
       { href: '/products?category=electronics', label: 'Electrónicos', icon: Zap },
       { href: '/products?category=smartphone', label: 'Celulares', icon: Smartphone },
       { href: '/products?category=audio', label: 'Audio', icon: Headphones },
-      { href: '/products?category=wearables', label: 'Vestibles', icon: Watch }, // Etiqueta más corta
+      { href: '/products?category=wearables', label: 'Vestibles', icon: Watch },
       { href: '/products?category=displays', label: 'Monitores', icon: Monitor },
     ]
   },
   { href: '/blog', label: 'Blog' },
-  { href: '/contact', label: 'Contáctanos' }, // Cambiado de 'Soporte' a 'Contáctanos' para ser más directo
+  { href: '/contact', label: 'Contáctanos' },
 ];
 
 export default function Header() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const pathname = usePathname();
-  const router = useRouter();
+  // ESTADOS LOCALES - Controlan el comportamiento del header
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Control del menú móvil
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null); // Control del dropdown activo
+  const [isScrolled, setIsScrolled] = useState(false); // Detecta si el usuario ha hecho scroll
+  const [searchQuery, setSearchQuery] = useState(''); // Valor del campo de búsqueda
   
-  const { itemCount } = useCart(); // <--- 2. OBTÉN itemCount DEL CONTEXTO DEL CARRITO
+  // HOOKS DE NEXT.JS - Para navegación y rutas
+  const pathname = usePathname(); // Obtiene la ruta actual
+  const router = useRouter(); // Para navegación programática
+  
+  const { itemCount } = useCart(); // ESTADO GLOBAL DEL CARRITO - Obtiene el número de items
 
+  // EFECTO DE SCROLL - Cambia el estilo del header cuando el usuario hace scroll
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      setIsScrolled(window.scrollY > 10); // Activa el efecto después de 10px de scroll
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll); // Limpieza del evento
   }, []);
 
+  // MANEJADORES DE DROPDOWN - Controlan la apertura/cierre de menús desplegables
   const handleMouseEnter = (label: string) => setActiveDropdown(label);
-  const handleMouseLeave = () => setTimeout(() => setActiveDropdown(null), 150);
+  const handleMouseLeave = () => setTimeout(() => setActiveDropdown(null), 150); // Delay para mejor UX
   const handleDropdownMouseEnter = () => { if (activeDropdown) setActiveDropdown(activeDropdown); };
   const handleDropdownToggle = (label: string) => setActiveDropdown(activeDropdown === label ? null : label);
 
+  // MANEJADOR DE BÚSQUEDA - Procesa las búsquedas y navega a la página de productos
   const handleSearchSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     if (e) e.preventDefault();
     if (searchQuery.trim()) {
+      // NAVEGACIÓN CON PARÁMETROS - Redirige a productos con el término de búsqueda
       router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
       setIsMobileMenuOpen(false); 
-      setSearchQuery(''); // Limpiar el campo de búsqueda después de enviar
+      setSearchQuery(''); // Limpia el campo después de buscar
     }
   };
 
   return (
     <>
+      {/* HEADER STICKY - Se mantiene fijo en la parte superior */}
       <header className={cn(
         "sticky top-0 z-50 transition-all duration-500 ease-in-out",
+        // ESTILOS DINÁMICOS - Cambian según el estado de scroll
         isScrolled 
           ? "bg-white/95 backdrop-blur-lg border-b border-orange-100 shadow-xl shadow-orange-500/10"
           : "bg-white border-b border-gray-200 shadow-lg"
@@ -76,8 +86,10 @@ export default function Header() {
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             
+            {/* LOGO Y MARCA - Enlace principal al inicio */}
             <Link href="/" className="flex items-center group">
               <div className="relative">
+                {/* EFECTO HOVER ANIMADO - Glow effect en el logo */}
                 <div className={cn(
                   "absolute inset-0 rounded-xl transition-all duration-300",
                   "bg-gradient-to-br from-orange-400 to-red-500 opacity-0 group-hover:opacity-20 blur-lg"
@@ -100,10 +112,12 @@ export default function Header() {
               </div>
             </Link>
 
+            {/* NAVEGACIÓN DESKTOP - Solo visible en pantallas grandes */}
             <nav className="hidden lg:flex items-center space-x-8">
               {navLinks.map((link) => (
-                <div key={link.label} className="relative group"> {/* Usar link.label como key si href no es único para el root */}
+                <div key={link.label} className="relative group">
                   {link.hasDropdown ? (
+                    // DROPDOWN MENU - Menú desplegable para productos
                     <div 
                       onMouseEnter={() => handleMouseEnter(link.label)}
                       onMouseLeave={handleMouseLeave}
@@ -113,16 +127,21 @@ export default function Header() {
                         className={cn(
                           "flex items-center space-x-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300",
                           "hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 hover:text-orange-600",
+                          // ESTILOS CONDICIONALES - Resalta la página activa
                           (pathname.startsWith(link.href) || (pathname === "/products" && link.href === "/products")) && link.label === "Productos" ? "text-orange-600 bg-orange-50" : 
                           pathname === link.href && link.label !== "Productos" ? "text-orange-600 bg-orange-50" : "text-gray-700",
                           activeDropdown === link.label ? "text-orange-600 bg-orange-50" : ""
                         )}
                       >
                         <span>{link.label}</span>
+                        {/* ICONO ANIMADO - Rota cuando se abre el dropdown */}
                         <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", activeDropdown === link.label ? "rotate-180 text-orange-600" : "")} />
                       </button>
+                      
+                      {/* CONTENIDO DEL DROPDOWN - Panel desplegable con categorías */}
                       <div className={cn(
                         "absolute top-full left-1/2 -translate-x-1/2 mt-1 w-80 transition-all duration-300 transform z-50",
+                        // ANIMACIÓN DE APARICIÓN - Transición suave del dropdown
                         activeDropdown === link.label ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-2 pointer-events-none"
                       )}
                         onMouseEnter={handleDropdownMouseEnter}
@@ -137,12 +156,13 @@ export default function Header() {
                             </h3>
                           </div>
                           <div className="grid gap-2">
+                            {/* ITEMS DEL DROPDOWN - Enlaces a categorías específicas */}
                             {link.dropdownItems?.map((item, index) => (
                               <Link
                                 key={item.href}
                                 href={item.href}
                                 className={cn("flex items-center space-x-3 p-3 rounded-xl transition-all duration-300 group/item", "hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 hover:scale-[1.02]", "animate-in slide-in-from-top-2 fade-in-0")}
-                                style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }}
+                                style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }} // ANIMACIÓN ESCALONADA
                                 onClick={() => setActiveDropdown(null)}
                               >
                                 <div className="p-2 rounded-lg bg-gradient-to-br from-orange-400 to-red-500 text-white group-hover/item:scale-110 group-hover/item:rotate-3 transition-all duration-300 shadow-sm">
@@ -158,6 +178,7 @@ export default function Header() {
                               </Link>
                             ))}
                           </div>
+                          {/* ENLACE A TODOS LOS PRODUCTOS */}
                           <div className="mt-4 pt-3 border-t border-orange-100">
                             <Link 
                               href="/products"
@@ -172,6 +193,7 @@ export default function Header() {
                       </div>
                     </div>
                   ) : (
+                    // ENLACES SIMPLES - Para páginas sin dropdown
                     <Link
                       href={link.href}
                       className={cn("px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 relative overflow-hidden", "hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 hover:text-orange-600", pathname === link.href ? "text-orange-600 bg-orange-50" : "text-gray-700")}
@@ -184,6 +206,7 @@ export default function Header() {
               ))}
             </nav>
 
+            {/* BARRA DE BÚSQUEDA DESKTOP - Solo visible en pantallas medianas y grandes */}
             <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center relative group">
               <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-500 rounded-full opacity-0 group-hover:opacity-20 blur transition-all duration-300 pointer-events-none" />
               <div className="relative flex items-center">
@@ -199,26 +222,29 @@ export default function Header() {
                   variant="ghost" 
                   size="icon" 
                   className="absolute right-1 h-9 w-9 rounded-full hover:bg-gradient-to-r hover:from-orange-400 hover:to-red-500 hover:text-white transition-all duration-300"
-                  aria-label="Buscar" // Añadir aria-label
+                  aria-label="Buscar"
                 >
                   <Search className="h-4 w-4" />
                 </Button>
               </div>
             </form>
 
+            {/* ACCIONES DEL HEADER - Carrito y menú móvil */}
             <div className="flex items-center space-x-2">
+              {/* ENLACE AL CARRITO - Con badge dinámico */}
               <Link href="/cart" className="relative group">
                 <Button variant="ghost" size="icon" className="h-11 w-11 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 hover:text-orange-600 transition-all duration-300">
                   <ShoppingCart className="h-5 w-5" />
-                  {/* 3. USA itemCount PARA EL BADGE (mostrar solo si hay items) */}
-                  {itemCount > 0 && (
-                    <span className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-r from-orange-400 to-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold animate-bounce-gentle">
-                      {itemCount}
-                    </span>
-                  )}
+                  {/* BADGE DEL CARRITO - Muestra el número de items, solo si hay items */}
+                  {typeof window !== 'undefined' && itemCount > 0 && (
+  <span className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-r from-orange-400 to-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold animate-bounce-gentle">
+    {itemCount}
+  </span>
+)}
                 </Button>
               </Link>
               
+              {/* MENÚ MÓVIL - Solo visible en pantallas pequeñas */}
               <div className="lg:hidden">
                 <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                   <SheetTrigger asChild>
@@ -226,8 +252,10 @@ export default function Header() {
                       <Menu className="h-6 w-6" />
                     </Button>
                   </SheetTrigger>
+                  {/* CONTENIDO DEL MENÚ MÓVIL */}
                   <SheetContent side="right" className="w-[320px] p-0 glass">
                     <div className="flex flex-col h-full bg-gradient-to-br from-white via-orange-50/30 to-red-50/30">
+                      {/* HEADER DEL MENÚ MÓVIL */}
                       <div className="flex justify-between items-center p-6 border-b border-orange-100">
                         <Link 
                           href="/" 
@@ -243,10 +271,13 @@ export default function Header() {
                           </Button>
                         </SheetClose>
                       </div>
+                      
+                      {/* NAVEGACIÓN MÓVIL */}
                       <nav className="flex flex-col space-y-2 p-6 flex-1">
                         {navLinks.map((link) => (
-                          <div key={link.label}> {/* Usar link.label como key aquí también */}
+                          <div key={link.label}>
                             {link.hasDropdown ? (
+                              // DROPDOWN MÓVIL - Funciona con clicks en lugar de hover
                               <div>
                                 <button
                                   onClick={() => handleDropdownToggle(link.label)}
@@ -255,6 +286,7 @@ export default function Header() {
                                   <span>{link.label}</span>
                                   <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", activeDropdown === link.label ? "rotate-180" : "")} />
                                 </button>
+                                {/* ITEMS DEL DROPDOWN MÓVIL */}
                                 <div className={cn("overflow-hidden transition-all duration-300", activeDropdown === link.label ? "max-h-64 opacity-100" : "max-h-0 opacity-0")}>
                                   <div className="pl-4 pt-2 space-y-1">
                                     {link.dropdownItems?.map((item) => (
@@ -269,6 +301,7 @@ export default function Header() {
                                 </div>
                               </div>
                             ) : (
+                              // ENLACES SIMPLES MÓVILES
                               <SheetClose asChild>
                                 <Link href={link.href} className={cn("block px-4 py-3 rounded-xl text-base font-medium transition-all duration-300", "hover:bg-gradient-to-r hover:from-orange-100 hover:to-red-100", pathname === link.href ? "bg-gradient-to-r from-orange-100 to-red-100 text-orange-600" : "text-gray-700")}>
                                   {link.label}
@@ -278,6 +311,8 @@ export default function Header() {
                           </div>
                         ))}
                       </nav>
+                      
+                      {/* BÚSQUEDA MÓVIL */}
                       <form onSubmit={handleSearchSubmit} className="p-6 border-t border-orange-100">
                         <div className="relative">
                           <Input 
@@ -287,7 +322,7 @@ export default function Header() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full pr-10 rounded-xl border-orange-200 focus:border-orange-400"
                           />
-                          <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2" aria-label="Buscar productos"> {/* Añadir aria-label */}
+                          <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2" aria-label="Buscar productos">
                             <Search className="h-4 w-4 text-gray-400" />
                           </button>
                         </div>
@@ -300,6 +335,8 @@ export default function Header() {
           </div>
         </div>
       </header>
+      
+      {/* OVERLAY DEL DROPDOWN - Fondo semi-transparente cuando está activo */}
       {activeDropdown && (
         <div 
           className="fixed inset-0 z-40 bg-black/5 backdrop-blur-sm transition-opacity duration-300"
