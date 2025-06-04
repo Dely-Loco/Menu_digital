@@ -555,7 +555,7 @@ export default function CheckoutPage() {
               </CardFooter>
               
               <div className="px-6 pb-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
                   <p className="text-xs text-blue-800 text-center leading-relaxed">
                     🔒 Pago 100% seguro con Mercado Pago. 
                     Serás redirigido para completar tu compra.

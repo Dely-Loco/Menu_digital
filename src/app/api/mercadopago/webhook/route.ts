@@ -2,51 +2,56 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 
-const client = new MercadoPagoConfig({ 
+const client = new MercadoPagoConfig({
   accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN!,
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
-    // Verificar que es una notificación de pago
-    if (body.type === 'payment') {
-      const payment = new Payment(client);
-      const paymentInfo = await payment.get({ id: body.data.id });
-      
-      console.log('Payment notification received:', {
-        id: paymentInfo.id,
-        status: paymentInfo.status,
-        external_reference: paymentInfo.external_reference,
-        transaction_amount: paymentInfo.transaction_amount,
-      });
 
-      // Aquí puedes actualizar tu base de datos según el estado del pago
-      switch (paymentInfo.status) {
-        case 'approved':
-          // Pago aprobado - actualizar orden como pagada
-          console.log('Payment approved:', paymentInfo.id);
-          break;
-        case 'pending':
-          // Pago pendiente
-          console.log('Payment pending:', paymentInfo.id);
-          break;
-        case 'rejected':
-          // Pago rechazado
-          console.log('Payment rejected:', paymentInfo.id);
-          break;
-        default:
-          console.log('Unknown payment status:', paymentInfo.status);
+    if (body.type === 'payment') {
+      const paymentId = body.data.id;
+
+      if (!paymentId) {
+        console.warn('Webhook recibido sin paymentId');
+        return NextResponse.json({ received: true });
+      }
+
+      const payment = new Payment(client);
+
+      try {
+        const paymentInfo = await payment.get({ id: paymentId });
+
+        console.log('✅ Payment recibido:', {
+          id: paymentInfo.id,
+          status: paymentInfo.status,
+          external_reference: paymentInfo.external_reference,
+        });
+
+        // Aquí puedes actualizar tu orden según el estado
+        switch (paymentInfo.status) {
+          case 'approved':
+            console.log('✔️ Pago aprobado');
+            break;
+          case 'pending':
+            console.log('⌛ Pago pendiente');
+            break;
+          case 'rejected':
+            console.log('❌ Pago rechazado');
+            break;
+          default:
+            console.log('❓ Estado desconocido:', paymentInfo.status);
+        }
+      } catch (err) {
+        console.error('❗ Error al obtener el pago desde Mercado Pago:', err);
+        // No lances error, solo responde como recibido para que Mercado Pago no reintente indefinidamente
       }
     }
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('Webhook error:', error);
-    return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
-    );
+    console.error('❗ Webhook error general:', error);
+    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 200 });
   }
 }
