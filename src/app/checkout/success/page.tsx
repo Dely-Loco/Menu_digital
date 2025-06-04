@@ -1,5 +1,6 @@
 'use client';
 
+import React, { Suspense } from 'react';
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
@@ -9,7 +10,8 @@ import { CheckCircle } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-export default function SuccessPage() {
+// Componente que usa useSearchParams
+function SuccessPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { dispatch } = useCart();
@@ -61,5 +63,14 @@ export default function SuccessPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// Componente principal envuelto en Suspense
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <SuccessPageContent />
+    </Suspense>
   );
 }
