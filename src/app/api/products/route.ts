@@ -15,12 +15,15 @@ export async function GET(request: Request) {
     const sortBy = searchParams.get('sort');
     const isFeatured = searchParams.get('featured');
     const isOnSale = searchParams.get('on_sale');
+    // 🆕 NUEVO: Parámetro para filtrar productos en descuento
+    const saleFilter = searchParams.get('sale');
 
     // --- Debugging Logs ---
     console.log('[API /api/products] Received URL:', request.url);
     console.log('[API /api/products] searchQuery:', searchQuery);
     console.log('[API /api/products] categorySlug:', categorySlug);
     console.log('[API /api/products] brandName:', brandName);
+    console.log('[API /api/products] saleFilter:', saleFilter); // 🆕 NUEVO LOG
     // --- Fin Debugging Logs ---
 
     const whereConditions: Prisma.ProductoWhereInput = {};
@@ -74,7 +77,6 @@ export async function GET(request: Request) {
       console.log('[API /api/products] No search query, or empty search query.');
     }
 
-
     if (isFeatured === 'true') {
       whereConditions.destacado = true;
     }
@@ -87,9 +89,14 @@ export async function GET(request: Request) {
       // o confiar en que el frontend muestre el descuento basado en los dos precios.
       // Por ahora, solo verificamos que tenga un precioAnterior.
     }
+
+    // 🆕 NUEVO: Filtro para productos en descuento
+    if (saleFilter === 'true') {
+      whereConditions.precioAnterior = { not: null };
+      console.log('[API /api/products] Applying sale filter - products with discount');
+    }
     
     console.log('[API /api/products] Final whereConditions:', JSON.stringify(whereConditions, null, 2));
-
 
     let orderBy: Prisma.ProductoOrderByWithRelationInput | Prisma.ProductoOrderByWithRelationInput[] = { creadoEn: 'desc' }; // Default
     switch (sortBy) {
@@ -100,7 +107,6 @@ export async function GET(request: Request) {
       // default ya está establecido
     }
     console.log('[API /api/products] orderBy:', orderBy);
-
 
     const productosDB = await db.producto.findMany({
       where: whereConditions,
@@ -115,7 +121,6 @@ export async function GET(request: Request) {
 
     const productosMapeados = mapProductos(productosDB);
     console.log(`[API /api/products] Found ${productosDB.length} products, mapped to ${productosMapeados.length}.`);
-
 
     return NextResponse.json(productosMapeados);
 

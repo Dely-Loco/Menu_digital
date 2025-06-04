@@ -8,7 +8,7 @@ import {
   Facebook, /*Twitter,*/ Instagram, 
   /*Linkedin,*/ /*Youtube,*/
   Smartphone, Zap, Headphones, 
-  Watch, Monitor, Heart,
+  Watch, ShoppingBag, Heart,
   Shield, 
   Truck, CreditCard, Globe
 } from 'lucide-react';
@@ -19,15 +19,15 @@ export default function Footer() {
   // ============= CONFIGURACIÓN PERSONALIZABLE =============
   // 🔧 AQUÍ PUEDES MODIFICAR LAS CATEGORÍAS Y ENLACES DE PRODUCTOS
   const footerLinks = {
-    products: [
-      // 📝 MODIFICA: href (enlace), label (nombre que aparece), icon (ícono)
-      { href: '/products?category=electronics', label: 'Electrónicos', icon: Smartphone },
-      { href: '/products?category=smart-home', label: 'Hogar Inteligente', icon: Zap },
-      { href: '/products?category=audio', label: 'Audio', icon: Headphones },
-      { href: '/products?category=wearables', label: 'Vestibles', icon: Watch },
-      { href: '/products?category=displays', label: 'Monitores', icon: Monitor },
-      // 🆕 AGREGAR MÁS: { href: '/products?category=gaming', label: 'Gaming', icon: Gamepad2 },
-    ],
+      products: [
+        // 📝 MODIFICA: href (enlace), label (nombre que aparece), icon (ícono)
+        { href: '/products?category=celulares', label: 'Celulares', icon: Smartphone },
+        { href: '/products?category=relojes', label: 'Relojes', icon: Watch },
+        { href: '/products?category=audio', label: 'Audio', icon: Headphones },
+        { href: '/products?category=powerbanck', label: 'Power Bank', icon: Zap },
+        { href: '/products?category=accesorios', label: 'Accesorios', icon: ShoppingBag },
+        // 🆕 AGREGAR MÁS: { href: '/products?category=gaming', label: 'Gaming', icon: Gamepad2 },
+      ],
     
     // 🔧 SECCIÓN DE EMPRESA - MODIFICA O AGREGA PÁGINAS
     company: [
@@ -136,7 +136,7 @@ export default function Footer() {
           {/* ============= LOGO Y CONTACTO ============= */}
           {/* 📏 ESPACIO DEL LOGO - lg:col-span-2 HACE QUE OCUPE 2 COLUMNAS */}
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center group mb-6">
+            <div className="flex items-center group mb-6">
               <div className="relative">
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 opacity-0 group-hover:opacity-20 blur-lg transition-all duration-300" />
                 {/* 🖼️ LOGO - MODIFICA width y height PARA CAMBIAR TAMAÑO */}
@@ -158,7 +158,7 @@ export default function Footer() {
                   INNOVACIÓN TECNOLÓGICA {/* 📝 CAMBIA EL ESLOGAN */}
                 </div>
               </div>
-            </Link>
+            </div>
             
             {/* 📝 DESCRIPCIÓN DE LA EMPRESA - PERSONALIZA COMPLETAMENTE */}
             <p className="text-gray-300 leading-relaxed mb-6 max-w-md">
