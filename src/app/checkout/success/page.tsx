@@ -1,4 +1,3 @@
-// src/app/checkout/success/page.tsx
 'use client';
 
 import { useEffect } from 'react';
@@ -7,6 +6,8 @@ import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 
 export default function SuccessPage() {
   const router = useRouter();
@@ -18,7 +19,6 @@ export default function SuccessPage() {
   const externalReference = searchParams.get('external_reference');
 
   useEffect(() => {
-    // Limpiar el carrito cuando el pago es exitoso
     if (status === 'approved') {
       dispatch({ type: 'CLEAR_CART' });
     }
@@ -34,36 +34,27 @@ export default function SuccessPage() {
           <CardTitle className="text-2xl text-green-600">¡Pago Exitoso!</CardTitle>
         </CardHeader>
         <CardContent className="text-center space-y-4">
-          <p className="text-gray-600">
-            Tu pago ha sido procesado correctamente.
-          </p>
-          
+          <p className="text-gray-600">Tu pago ha sido procesado correctamente.</p>
+
           {paymentId && (
             <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-sm text-gray-500">ID de Pago:</p>
               <p className="font-mono text-sm">{paymentId}</p>
             </div>
           )}
-          
+
           {externalReference && (
             <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-sm text-gray-500">Referencia:</p>
               <p className="font-mono text-sm">{externalReference}</p>
             </div>
           )}
-          
+
           <div className="space-y-2">
-            <Button 
-              onClick={() => router.push('/products')} 
-              className="w-full"
-            >
+            <Button onClick={() => router.push('/products')} className="w-full">
               Seguir Comprando
             </Button>
-            <Button 
-              onClick={() => router.push('/')} 
-              variant="outline" 
-              className="w-full"
-            >
+            <Button onClick={() => router.push('/')} variant="outline" className="w-full">
               Ir al Inicio
             </Button>
           </div>
