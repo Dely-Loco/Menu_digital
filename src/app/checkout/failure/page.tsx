@@ -1,9 +1,12 @@
 // src/app/checkout/failure/page.tsx
-import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+import FailureContent from './FailureContent';
 
-// Renderiza el componente solo del lado del cliente
-const FailureContent = dynamic(() => import('./FailureContent'), { ssr: false });
-
-export default function Page() {
-  return <FailureContent />;
+export default function FailurePage() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <FailureContent />
+    </Suspense>
+  );
 }
+
