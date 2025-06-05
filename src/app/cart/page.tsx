@@ -120,7 +120,7 @@ export default function CartPage() {
     dispatch({ type: 'CLEAR_CART' });
   };
 
-  const shippingCost = cartItems.length > 0 ? 5000 : 0; // Ejemplo: costo de envío en COP
+  const shippingCost = cartItems.length > 0 ? 20000 : 0; // Ejemplo: costo de envío en COP
   const finalTotal = cartTotal + shippingCost;
 
   if (!mounted) {

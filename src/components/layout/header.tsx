@@ -58,7 +58,7 @@ const navLinks = [
      { href: '/products?category=celulares', label: 'Celulares', icon: Smartphone },
         { href: '/products?category=relojes', label: 'Relojes', icon: Watch },
         { href: '/products?category=audio', label: 'Audio', icon: Headphones },
-        { href: '/products?category=powerbanck', label: 'Power Bank', icon: Zap },
+        { href: '/products?category=powerbank', label: 'Power Bank', icon: Zap },
         { href: '/products?category=accesorios', label: 'Accesorios', icon: ShoppingBag }, 
     ]
   },

@@ -206,10 +206,10 @@ export default async function HomePage() {
               {/* 💰 DESCRIPCIÓN DE OFERTA - Muy personalizable */}
               <p className="text-lg md:text-xl text-gray-200 mb-8 md:mb-10 leading-relaxed">
                 {/* 📝 PORCENTAJE DE DESCUENTO - Cambia el 30% */}
-                Hasta <span className="text-orange-400 font-bold text-2xl md:text-3xl">30% DCTO</span> en Hogar Inteligente. 
+                Hasta <span className="text-orange-400 font-bold text-2xl md:text-3xl">40% DCTO</span> en Tecnología. 
                 <br className="hidden md:block" />
                 {/* 📝 MENSAJE ADICIONAL */}
-                Transforma tu hogar por menos.
+                Transforma tu estilo por menos.
               </p>
               
               {/* 🔘 BOTÓN DE OFERTAS */}
@@ -219,7 +219,7 @@ export default async function HomePage() {
                 className="group bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold px-10 py-5 text-lg md:text-xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 rounded-xl md:rounded-2xl"
               >
                 {/* 🔗 ENLACE A OFERTAS - Personaliza la URL */}
-<Link href="/products?discount=true">                  <span className="flex items-center gap-2 md:gap-3">
+                <Link href="/products?sale=true">                  <span className="flex items-center gap-2 md:gap-3">
                     {/* 📝 TEXTO DEL BOTÓN - Personalizable */}
                     Ver Ofertas
                     <Zap className="w-5 h-5 md:w-6 group-hover:animate-bounce" />
