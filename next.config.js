@@ -1,15 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // ... otras configuraciones que puedas tener ...
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
-        port: '', // Déjalo vacío si usa el puerto estándar (443 para https)
-        pathname: '/**', // Permite cualquier ruta dentro de ese hostname, ajusta si es necesario
+        port: '',
+        pathname: '/**',
       },
-      // Puedes añadir más hostnames aquí si los necesitas, por ejemplo, 'images.unsplash.com'
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
@@ -18,14 +16,30 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'placehold.co', // Si todavía usas imágenes de placeholder de aquí
+        hostname: 'placehold.co',
         port: '',
         pathname: '/**',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.openai.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.mos.cms.futurecdn.net',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.pinimg.com', // <--- nuevo dominio añadido
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
 
 module.exports = nextConfig;
-
-
