@@ -3,11 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 interface Props {
-  params: { tag: string };
+  params: Promise<{ tag: string }>;
 }
 
 export default async function Page({ params }: Props) {
-  const tag = decodeURIComponent(params.tag);
+  // Await the params since they're now a Promise in Next.js 15
+  const resolvedParams = await params;
+  const tag = decodeURIComponent(resolvedParams.tag);
 
   const productos = await prisma.producto.findMany({
     where: {
