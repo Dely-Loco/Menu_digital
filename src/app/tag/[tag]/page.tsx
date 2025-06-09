@@ -2,13 +2,16 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-interface Props {
-  params: Promise<{ tag: string }>;
+// ✅ Usando exactamente el mismo patrón que products/[id]/page.tsx
+interface TagPageParams {
+  params: Promise<{
+    tag: string;
+  }>;
 }
 
-export default async function Page({ params }: Props) {
-  // Await the params since they're now a Promise in Next.js 15
-  const resolvedParams = await params;
+// ✅ CORREGIDO: await params (mismo patrón que productos)
+export default async function TagPage({ params }: TagPageParams) {
+  const resolvedParams = await params; // <- Await params primero
   const tag = decodeURIComponent(resolvedParams.tag);
 
   const productos = await prisma.producto.findMany({
@@ -32,7 +35,7 @@ export default async function Page({ params }: Props) {
       <ul className="space-y-4">
         {productos.map((producto) => (
           <li key={producto.id}>
-            <Link href={`/products/${producto.id}`} className="text-blue-600 underline">
+            <Link href={`/products/${producto.slug}`} className="text-blue-600 underline">
               {producto.nombre}
             </Link>
           </li>
@@ -40,4 +43,15 @@ export default async function Page({ params }: Props) {
       </ul>
     </div>
   );
+}
+
+// ✅ OPCIONAL: generateMetadata siguiendo el mismo patrón
+export async function generateMetadata({ params }: TagPageParams) {
+  const resolvedParams = await params;
+  const tag = decodeURIComponent(resolvedParams.tag);
+
+  return {
+    title: `Productos con etiqueta: ${tag} | Houzze Tec`,
+    description: `Encuentra todos los productos relacionados con ${tag}`,
+  };
 }
