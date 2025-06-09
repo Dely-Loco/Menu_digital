@@ -11,6 +11,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import type { BlogPost } from '@/types';
 
+
 // ✅ CORREGIDO: Tipo actualizado para Next.js 15
 interface BlogPostPageParams {
   params: Promise<{
@@ -95,14 +96,19 @@ export default async function BlogPostDetailPage({ params }: BlogPostPageParams)
           )}
         </div>
         {post.tags && post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 pt-2">
-            {post.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="hover:bg-gray-200 transition-colors">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        )}
+  <div className="flex flex-wrap gap-2 pt-2">
+    {post.tags.map((tag) => (
+      <Link href={`/tag/${tag}`} key={tag}>
+        <Badge
+          variant="secondary"
+          className="hover:bg-orange-100 text-orange-800 transition-colors cursor-pointer"
+        >
+          #{tag}
+        </Badge>
+      </Link>
+    ))}
+  </div>
+)}
       </header>
 
       <div
