@@ -2,19 +2,17 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-interface TagPageProps {
-  params: {
-    tag: string;
-  };
+interface Props {
+  params: { tag: string };
 }
 
-export default async function TagPage({ params }: TagPageProps) {
+export default async function Page({ params }: Props) {
   const tag = decodeURIComponent(params.tag);
 
   const productos = await prisma.producto.findMany({
     where: {
       etiquetas: {
-        has: tag, // Buscar productos que tengan ese tag
+        has: tag,
       },
     },
     orderBy: {
