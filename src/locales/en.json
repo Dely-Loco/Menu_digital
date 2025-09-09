@@ -1,0 +1,78 @@
+{
+  "Navigation": {
+    "home": "Home",
+    "menu": "Our Menu",
+    "about": "About Us",
+    "contact": "Location"
+  },
+  "Home": {
+    "welcome": "Welcome to Dely Loco",
+    "subtitle": "Comuna 13 • Medellín",
+    "description": "Dely Loco is the authentic flavor of Comuna 13. Come and enjoy our traditional dishes, refreshing drinks and the unique atmosphere of Medellín.",
+    "callToAction": "View Menu",
+    "features": {
+      "fastService": {
+        "title": "Fast Service",
+        "description": "Efficient service in restaurant and delivery because your satisfaction is our priority."
+      },
+      "familyTradition": {
+        "title": "Family Tradition",
+        "description": "Recipes passed down from generation to generation, prepared with the authentic seasoning of Comuna 13."
+      },
+      "freshIngredients": {
+        "title": "Fresh Ingredients",
+        "description": "We carefully select each ingredient to guarantee freshness and quality in every dish."
+      }
+    },
+    "specialties": "Our Specialties",
+    "categoriesTitle": "Categories that will make you Fall in Love",
+    "categoriesSubtitle": "From traditional dishes to unique creations, each category reflects the gastronomic richness of Medellín"
+  },
+  "Menu": {
+    "title": "Our Menu",
+    "searchPlaceholder": "Search dishes, ingredients...",
+    "filterByCategory": "Filter by category",
+    "allCategories": "All categories",
+    "noResults": "No dishes found",
+    "addToCart": "Add to cart",
+    "outOfStock": "Out of stock",
+    "featured": "Featured"
+  },
+  "Cart": {
+    "title": "My Cart",
+    "empty": "Your cart is empty",
+    "continueShopping": "Continue shopping",
+    "checkout": "Checkout",
+    "total": "Total",
+    "removeItem": "Remove",
+    "quantity": "Quantity"
+  },
+  "Contact": {
+    "title": "Contact Us",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "hours": "Hours",
+    "orderWhatsApp": "Order via WhatsApp"
+  },
+  "Footer": {
+    "madeWith": "Made with",
+    "forComuna13": "for Comuna 13",
+    "developedBy": "Developed by Pablo Henao",
+    "followUs": "Follow us:",
+    "allRightsReserved": "All rights reserved",
+    "menuTitle": "Our Menu",
+    "restaurantTitle": "Restaurant",
+    "hungryQuestion": "Are you hungry?",
+    "writeUs": "Write us and place your order"
+  },
+  "WhatsApp": {
+    "orderDelivery": "Order delivery!",
+    "defaultMessage": "Hello! I'm interested in placing an order from your digital menu. Can you help me?"
+  },
+  "Language": {
+    "title": "Change language",
+    "current": "Current language",
+    "selectLanguage": "Select language"
+  }
+}

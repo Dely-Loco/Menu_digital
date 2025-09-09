@@ -1,0 +1,78 @@
+{
+  "Navigation": {
+    "home": "Inicio",
+    "menu": "Nuestro Menú",
+    "about": "Nosotros",
+    "contact": "Ubicación"
+  },
+  "Home": {
+    "welcome": "Bienvenido a Dely Loco",
+    "subtitle": "Comuna 13 • Medellín",
+    "description": "Dely Loco es el sabor auténtico de la Comuna 13. Ven y disfruta de nuestros platos típicos, bebidas refrescantes y el ambiente único de Medellín.",
+    "callToAction": "Ver Menú",
+    "features": {
+      "fastService": {
+        "title": "Atención Rápida",
+        "description": "Servicio eficiente en restaurante y domicilios porque tu satisfacción es nuestra prioridad."
+      },
+      "familyTradition": {
+        "title": "Tradición Familiar",
+        "description": "Recetas transmitidas de generación en generación, preparadas con el sazón auténtico de la Comuna 13."
+      },
+      "freshIngredients": {
+        "title": "Ingredientes Frescos",
+        "description": "Seleccionamos cuidadosamente cada ingrediente para garantizar frescura y calidad en cada plato."
+      }
+    },
+    "specialties": "Nuestras Especialidades",
+    "categoriesTitle": "Categorías que te van a Enamorar",
+    "categoriesSubtitle": "Desde platos tradicionales hasta creaciones únicas, cada categoría refleja la riqueza gastronómica de Medellín"
+  },
+  "Menu": {
+    "title": "Nuestro Menú",
+    "searchPlaceholder": "Buscar platos, ingredientes...",
+    "filterByCategory": "Filtrar por categoría",
+    "allCategories": "Todas las categorías",
+    "noResults": "No se encontraron platos",
+    "addToCart": "Agregar al carrito",
+    "outOfStock": "Agotado",
+    "featured": "Destacado"
+  },
+  "Cart": {
+    "title": "Mi Carrito",
+    "empty": "Tu carrito está vacío",
+    "continueShopping": "Continuar comprando",
+    "checkout": "Finalizar pedido",
+    "total": "Total",
+    "removeItem": "Eliminar",
+    "quantity": "Cantidad"
+  },
+  "Contact": {
+    "title": "Contáctanos",
+    "phone": "Teléfono",
+    "email": "Email",
+    "address": "Dirección",
+    "hours": "Horarios",
+    "orderWhatsApp": "Pedir por WhatsApp"
+  },
+  "Footer": {
+    "madeWith": "Hecho con",
+    "forComuna13": "para la Comuna 13",
+    "developedBy": "Desarrollado por Pablo Henao",
+    "followUs": "Síguenos en:",
+    "allRightsReserved": "Todos los derechos reservados",
+    "menuTitle": "Nuestro Menú",
+    "restaurantTitle": "Restaurante",
+    "hungryQuestion": "¿Tienes hambre?",
+    "writeUs": "Escríbenos y haz tu pedido"
+  },
+  "WhatsApp": {
+    "orderDelivery": "¡Pide a domicilio!",
+    "defaultMessage": "¡Hola! Estoy interesado/a en hacer un pedido desde su menú digital. ¿Pueden ayudarme?"
+  },
+  "Language": {
+    "title": "Cambiar idioma",
+    "current": "Idioma actual",
+    "selectLanguage": "Seleccionar idioma"
+  }
+}

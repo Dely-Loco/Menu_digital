@@ -1,3 +1,6 @@
+// next.config.js
+const withNextIntl = require('next-intl/plugin')('./src/i18n.ts');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -42,4 +45,5 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// 👇 Aquí se fusiona la configuración de next-intl con la tuya
+module.exports = withNextIntl(nextConfig);

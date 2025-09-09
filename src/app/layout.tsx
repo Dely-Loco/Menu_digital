@@ -6,8 +6,10 @@ import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from '@/context/CartContext';
+import { LanguageProvider } from '@/context/LanguageContext'; // 👈 Agregar esto
 import WhatsAppButton from '@/components/ui/whatsapp-button';
-import PromoModal from "@/components/ui/PromoModal"; // ✅ tu modal real
+import LanguageSelector from '@/components/ui/LanguageSelector';
+import PromoModal from "@/components/ui/PromoModal";
 
 const inter = Inter({
   subsets: ['latin'],
@@ -30,8 +32,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Configuración de WhatsApp
-  const whatsappNumber = "573014056704"; // Reemplaza con tu número real
+  const whatsappNumber = "573014056704";
   const whatsappMessage = "¡Hola! Me interesa hacer un pedido, ¿pueden ayudarme?";
 
   return (
@@ -39,23 +40,24 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen bg-gray-50 dark:bg-slate-950`}
       >
-        <CartProvider>
-          <Header />
-          <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {children}
-          </main>
-          <Footer />
-          <Toaster />
+        <LanguageProvider> {/* 👈 Envolver con LanguageProvider */}
+          <CartProvider>
+            <Header />
+            <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              {children}
+            </main>
+            <Footer />
+            <Toaster />
 
-          {/* BOTÓN FLOTANTE DE WHATSAPP MEJORADO */}
-          <WhatsAppButton 
-            phoneNumber={whatsappNumber}
-            message={whatsappMessage}
-          />
+            <WhatsAppButton 
+              phoneNumber={whatsappNumber}
+              message={whatsappMessage}
+            />
 
-          {/* MODAL DE PROMOCIÓN */}
-          <PromoModal /> 
-        </CartProvider>
+            <LanguageSelector />
+            <PromoModal /> 
+          </CartProvider>
+        </LanguageProvider> {/* 👈 Cerrar LanguageProvider */}
       </body>
     </html>
   );
