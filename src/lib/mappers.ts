@@ -1,34 +1,63 @@
 // src/lib/mappers.ts
-import {
-  Categoria as PrismaCategoria,
-  Producto as PrismaProducto,
-  Imagen as PrismaImagen,
-  Prisma // Importa el namespace Prisma
-} from '@prisma/client';
-import type { Category, Product, ProductImage, } from '@/types';
+import { Prisma } from '@prisma/client';
+import type { Category, Plato as PlatoType, ProductImage } from '@/types';
 
-// Helper para convertir Prisma Decimal a número de forma segura
-// Refinamos el tipo de 'value'
+// Helper para convertir Prisma Decimal a número
 function toNumber(value: string | number | Prisma.Decimal | null | undefined): number | undefined {
   if (value === null || value === undefined) return undefined;
-  const num = parseFloat(value.toString()); // Prisma.Decimal tiene un método .toString()
+  const num = parseFloat(value.toString());
   return isNaN(num) ? undefined : num;
 }
 
 const DEFAULT_PRODUCT_IMAGE_URL = 'https://placehold.co/600x600.png';
 const DEFAULT_CATEGORY_IMAGE_URL = 'https://placehold.co/400x300.png';
 
-// Tipo para un objeto Categoria de Prisma que incluye el conteo de productos
-type PrismaCategoriaWithCount = PrismaCategoria & { _count?: { productos: number } };
-
-// Tipo para un objeto Producto de Prisma que incluye las relaciones categoria e imagenes
-// y donde la categoría también puede tener el conteo.
-type PrismaProductoWithRelations = PrismaProducto & { 
-  categoria?: PrismaCategoriaWithCount | null; 
-  imagenes?: PrismaImagen[]; 
+// Definimos nuestros propios tipos basados en el schema de Prisma
+type DBCategoria = {
+  id: number;
+  nombre: string;
+  slug: string;
+  descripcion: string | null;
+  imagen: string | null;
+  esPopular: boolean | null;
+  creadoEn: Date;
 };
 
-export function formatProductImageFromDB(dbImage: PrismaImagen): ProductImage { // Usamos PrismaImagen
+type DBPlato = {
+  id: number;
+  nombre: string;
+  slug: string;
+  descripcion: string;
+  descripcionCorta: string | null;
+  precio: Prisma.Decimal;
+  precioAnterior: Prisma.Decimal | null;
+  disponible: boolean;
+  destacado: boolean;
+  etiquetas: string[];
+  creadoEn: Date;
+  categoriaId: number | null;
+};
+
+type DBImagen = {
+  id: number;
+  url: string;
+  alt: string | null;
+  orden: number;
+  platoId: number | null;
+};
+
+// Tipos con relaciones
+type PrismaCategoriaWithCount = DBCategoria & { 
+  _count?: { platos: number };
+};
+
+type PrismaPlatoWithRelations = DBPlato & {
+  categoria?: PrismaCategoriaWithCount | null;
+  imagenes?: DBImagen[];
+};
+
+// ---- FORMATTERS ----
+export function formatPlatoImageFromDB(dbImage: DBImagen): ProductImage {
   return {
     id: dbImage.id.toString(),
     url: dbImage.url,
@@ -38,86 +67,117 @@ export function formatProductImageFromDB(dbImage: PrismaImagen): ProductImage { 
   };
 }
 
-export function formatCategoryFromDB(dbCategory: PrismaCategoriaWithCount): Category { // Usamos el tipo específico
+export function formatCategoriaFromDB(dbCategory: PrismaCategoriaWithCount): Category {
   return {
     id: dbCategory.id.toString(),
     name: dbCategory.nombre,
     slug: dbCategory.slug,
     description: dbCategory.descripcion ?? undefined,
     image: dbCategory.imagen ?? DEFAULT_CATEGORY_IMAGE_URL,
-    icon: dbCategory.icono ?? undefined, 
-    color: dbCategory.color ?? undefined,
-    productsCount: dbCategory._count?.productos ?? 0,
-    isPopular: dbCategory.esPopular,
+    platosCount: dbCategory._count?.platos ?? 0,
+    isPopular: dbCategory.esPopular ?? false,
     createdAt: dbCategory.creadoEn.toISOString(),
-    dataAiHint: (dbCategory.nombre || '').toLowerCase(),
   };
 }
 
-export function formatProductFromDB(dbProduct: PrismaProductoWithRelations): Product | null { // Usamos el tipo específico
-  if (!dbProduct) return null;
+export function formatPlatoFromDB(dbPlato: PrismaPlatoWithRelations): PlatoType | null {
+  if (!dbPlato) return null;
 
-  const price = toNumber(dbProduct.precio); // precio es Decimal
-  const originalPrice = toNumber(dbProduct.precioAnterior); // precioAnterior es Decimal?
-  let discountPercentage: number | undefined = undefined;
-
-  if (originalPrice !== undefined && originalPrice > 0 && price !== undefined) {
-    if (price < originalPrice) {
-      discountPercentage = Math.round(((originalPrice - price) / originalPrice) * 100);
-    } else {
-      discountPercentage = 0;
-    }
-  }
-
-  const images: ProductImage[] = dbProduct.imagenes?.length
-    ? dbProduct.imagenes.map(formatProductImageFromDB)
+  const images: ProductImage[] = dbPlato.imagenes?.length
+    ? dbPlato.imagenes.map(formatPlatoImageFromDB)
     : [{
         id: 'default-placeholder-0',
         url: DEFAULT_PRODUCT_IMAGE_URL,
-        alt: dbProduct.nombre || 'Imagen de producto por defecto',
+        alt: dbPlato.nombre || 'Imagen de plato por defecto',
         order: 0,
         isPrimary: true,
       }];
 
+  const precio = toNumber(dbPlato.precio) ?? 0;
+  const precioAnterior = toNumber(dbPlato.precioAnterior);
+
   return {
-    id: dbProduct.id.toString(),
-    name: dbProduct.nombre,
-    slug: dbProduct.slug,
-    description: dbProduct.descripcion,
-    shortDescription: dbProduct.descripcionCorta ?? (dbProduct.descripcion ? dbProduct.descripcion.substring(0, 120) + '...' : undefined),
-    technicalSpec: dbProduct.especificacionesTecnicas ?? undefined,
-    price: price ?? 0,
-    originalPrice: originalPrice,
-    discountPercentage: discountPercentage,
-    category: dbProduct.categoria ? formatCategoryFromDB(dbProduct.categoria) : undefined,
-    categorySlug: dbProduct.categoria?.slug,
-    brand: dbProduct.marca ?? undefined,
-    images: images,
-    rating: toNumber(dbProduct.calificacion) ?? 0, // calificacion es Decimal?
-    reviewsCount: dbProduct.numeroReviews,
-    stock: dbProduct.stock,
-    isFeatured: dbProduct.destacado,
-    isNew: dbProduct.esNuevo,
-    isBestseller: dbProduct.masVendido,
-    tags: dbProduct.etiquetas || [],
-    features: dbProduct.caracteristicas || [],
-    colors: dbProduct.colores || [],
-    dimensions: dbProduct.dimensiones ?? undefined,
-    weight: dbProduct.peso ?? undefined,
-    warranty: dbProduct.garantia ?? undefined,
-    createdAt: dbProduct.creadoEn.toISOString(),
-    dataAiHint: (dbProduct.nombre || '').toLowerCase().substring(0,50),
-    shippingInfo: 'Envío estándar gratuito (2-5 días)',
-    inWishlist: false, 
-    compareCount: 0,
-    reviews: [],
+    id: dbPlato.id.toString(),
+    name: dbPlato.nombre,
+    slug: dbPlato.slug,
+    description: dbPlato.descripcion,
+    shortDescription: dbPlato.descripcionCorta ?? (dbPlato.descripcion ? dbPlato.descripcion.substring(0, 120) + '...' : undefined),
+    price: precio,
+    originalPrice: precioAnterior,
+    discountPercentage: precioAnterior && precioAnterior > precio
+      ? Math.round(((precioAnterior - precio) / precioAnterior) * 100)
+      : undefined,
+    available: dbPlato.disponible,
+    isFeatured: dbPlato.destacado,
+    category: dbPlato.categoria ? formatCategoriaFromDB(dbPlato.categoria) : undefined,
+    categorySlug: dbPlato.categoria?.slug,
+    images,
+    tags: dbPlato.etiquetas || [],
+    createdAt: dbPlato.creadoEn.toISOString(),
+    
+    // Valores opcionales para frontend
+    inWishlist: false,
   };
 }
 
+// ---- MAP FUNCTIONS ----
 export function mapCategorias(prismaCategorias: PrismaCategoriaWithCount[]): Category[] {
-  return prismaCategorias.filter(Boolean).map(formatCategoryFromDB); // No 'as any'
+  return prismaCategorias.filter(Boolean).map(formatCategoriaFromDB);
 }
 
-export function mapProductos(prismaProductos: PrismaProductoWithRelations[]): Product[] {
-  return prismaProductos.filter(Boolean).map(formatProductFromDB).filter(Boolean) as Product[]; // No 'as any' en map, el filter(Boolean) al final es para los null de formatProductFromDB
+export function mapPlatos(prismaPlatos: PrismaPlatoWithRelations[]): PlatoType[] {
+  return prismaPlatos.filter(Boolean).map(formatPlatoFromDB).filter(Boolean) as PlatoType[];
 }
+
+// ---- UTILITY FUNCTIONS ----
+
+/**
+ * Convierte un array de platos de DB con sus relaciones incluidas
+ */
+export function mapPlatosWithIncludes(
+  prismaPlatos: (DBPlato & {
+    categoria?: DBCategoria | null;
+    imagenes?: DBImagen[];
+  })[]
+): PlatoType[] {
+  return prismaPlatos.map(plato => formatPlatoFromDB(plato)).filter(Boolean) as PlatoType[];
+}
+
+/**
+ * Convierte una categoría individual de DB
+ */
+export function mapSingleCategoria(prismaCategoria: PrismaCategoriaWithCount | null): Category | null {
+  if (!prismaCategoria) return null;
+  return formatCategoriaFromDB(prismaCategoria);
+}
+
+/**
+ * Convierte un plato individual de DB
+ */
+export function mapSinglePlato(prismaPlato: PrismaPlatoWithRelations | null): PlatoType | null {
+  if (!prismaPlato) return null;
+  return formatPlatoFromDB(prismaPlato);
+}
+
+/**
+ * Helper para crear query includes comunes de Prisma
+ */
+export const commonIncludes = {
+  plato: {
+    categoria: {
+      include: {
+        _count: {
+          select: { platos: true }
+        }
+      }
+    },
+    imagenes: {
+      orderBy: { orden: 'asc' as const }
+    }
+  },
+  categoria: {
+    _count: {
+      select: { platos: true }
+    }
+  }
+} as const;

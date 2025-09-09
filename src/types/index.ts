@@ -1,65 +1,46 @@
 // @/types/index.ts
-// Archivo de definiciones de tipos TypeScript para una aplicación de e-commerce
+// Archivo de definiciones de tipos TypeScript para una aplicación de restaurante
 
 /**
- * Interfaz principal que define la estructura de un producto
- * Contiene toda la información necesaria para mostrar y gestionar productos
+ * Interfaz principal que define la estructura de un plato
+ * Contiene toda la información necesaria para mostrar y gestionar platos del menú
  */
-export interface Product {
+export interface Plato {
   // Identificadores básicos
   id: string;
   name: string;
   slug: string;
   
-  // Descripciones del producto
+  // Descripciones del plato
   description: string;
   shortDescription?: string;
-  technicalSpec?: string;
   
   // Información de precios
   price: number;
   originalPrice?: number;
   discountPercentage?: number;
   
-  // Categorización y marca
+  // Categorización
   category?: Category;
   categorySlug?: string;
-  brand?: string;
   
-  // Multimedia y calificaciones
+  // Multimedia
   images: ProductImage[];
-  rating: number;
-  reviewsCount: number;
   
-  // Inventario y etiquetas especiales
-  stock: number;
+  // Disponibilidad y etiquetas especiales
+  available: boolean;
   isFeatured: boolean;
-  isNew: boolean;
-  isBestseller: boolean;
   tags: string[];
-  dataAiHint?: string;
-  
-  // Detalles mejorados del producto
-  features: string[];
-  colors: string[];
-  dimensions?: string;
-  weight?: string;
-  warranty?: string;
-  shippingInfo?: string;
   
   // Datos de interacción del usuario (manejados en frontend)
   inWishlist?: boolean;
-  compareCount?: number;
-  
-  // Sistema de reseñas mejorado
-  reviews?: ProductReview[];
   
   // Metadatos
   createdAt?: string;
 }
 
 /**
- * Interfaz para las imágenes de productos
+ * Interfaz para las imágenes de platos
  */
 export interface ProductImage {
   id: string;
@@ -70,37 +51,19 @@ export interface ProductImage {
 }
 
 /**
- * Interfaz para las categorías de productos
+ * Interfaz para las categorías de platos
  */
 export interface Category {
-  id: string;
-  name: string;
+  id: string;                // Prisma devuelve `number`, pero si quieres usar string por consistencia con tu front, lo convertimos en el mapper
+  name: string;              // viene de `nombre` en Prisma
   slug: string;
-  description?: string;
-  image?: string;
-  dataAiHint?: string;
-  icon?: string;
-  color?: string;
-  productsCount?: number;
-  isPopular: boolean;
-  subcategories?: Category[];
-  featuredProducts?: string[];
-  createdAt?: string;
+  description?: string;      // viene de `descripcion`
+  image?: string;            // viene de `imagen`
+  isPopular?: boolean;       // si tu modelo Prisma tiene `esPopular`, lo mapeamos aquí
+  platosCount?: number;      // corresponde a `_count.productos` o `_count.platos`
+  createdAt?: string;        // Prisma devuelve `Date`, aquí lo podemos convertir a ISO string
 }
 
-/**
- * Interfaz para las reseñas de productos
- */
-export interface ProductReview {
-  id: string;
-  user: string;
-  rating: number;
-  comment: string;
-  date: string; // Considerar Date si se maneja en el cliente, o string ISO
-  verified: boolean;
-  helpful?: number;
-  images?: string[];
-}
 
 /**
  * Interfaz para las entradas del blog
@@ -118,7 +81,6 @@ export interface BlogPost {
   readTime?: string;
   imageUrl?: string;
   tags?: string[];
-  dataAiHint?: string;
   category?: string;
   featured?: boolean;
   views?: number;
@@ -130,27 +92,21 @@ export interface BlogPost {
 /**
  * Interfaz para elementos del carrito de compras
  */
-export interface CartItem extends Product {
+export interface CartItem extends Plato {
   quantity: number;
-  selectedColor?: string;
-  selectedSize?: string;
   addedAt: string; // Timestamp ISO string
+  notes?: string; // Notas especiales para el plato
 }
 
 /**
- * Interfaz para filtros de productos
+ * Interfaz para filtros de platos
  */
-export interface ProductFilters {
+export interface PlatoFilters {
   category?: string;
-  brand?: string;
   minPrice?: number;
   maxPrice?: number;
-  minRating?: number;
-  inStock?: boolean;
-  isNew?: boolean;
+  available?: boolean;
   isFeatured?: boolean;
-  isBestseller?: boolean;
-  colors?: string[];
   tags?: string[];
 }
 
@@ -158,7 +114,7 @@ export interface ProductFilters {
  * Interfaz para resultados de búsqueda
  */
 export interface SearchResult {
-  products: Product[];
+  platos: Plato[];
   categories: Category[];
   blogPosts: BlogPost[];
   totalResults: number;
@@ -187,7 +143,7 @@ export interface CartState extends UIState {
  * Interfaz para el estado de la lista de deseos
  */
 export interface WishlistState extends UIState {
-  items: Product[];
+  items: Plato[];
   itemCount: number;
 }
 
@@ -214,41 +170,56 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
   };
 }
 
-// ... (Tus otras interfaces: ContactForm, NewsletterForm, ProductReviewForm, NavigationItem, MegaMenuData, Promotion, Banner están bien)
-// Solo las incluyo aquí por si necesitas el archivo completo para copiar y pegar.
-
+/**
+ * Interfaz para formulario de contacto
+ */
 export interface ContactForm {
   name: string;
   email: string;
+  phone?: string;
   subject: string;
   message: string;
 }
 
+/**
+ * Interfaz para formulario de newsletter
+ */
 export interface NewsletterForm {
   email: string;
   preferences?: string[];
 }
 
-export interface ProductReviewForm {
-  rating: number;
-  title: string;
-  comment: string;
-  recommend: boolean;
-  images?: File[]; // File es un tipo global del navegador
+/**
+ * Interfaz para formulario de reservas
+ */
+export interface ReservationForm {
+  name: string;
+  email: string;
+  phone: string;
+  date: string;
+  time: string;
+  guests: number;
+  specialRequests?: string;
 }
 
+/**
+ * Interfaz para elementos de navegación
+ */
 export interface NavigationItem {
   id: string;
   label: string;
   href: string;
-  icon?: string; // Podría ser un componente React o un string para una clase de icono
+  icon?: string;
   badge?: string;
   children?: NavigationItem[];
 }
 
+/**
+ * Interfaz para datos del mega menú
+ */
 export interface MegaMenuData {
   categories: Category[];
-  featuredProducts: Product[];
+  featuredPlatos: Plato[];
   promotions: {
     title: string;
     description: string;
@@ -257,6 +228,9 @@ export interface MegaMenuData {
   }[];
 }
 
+/**
+ * Interfaz para promociones
+ */
 export interface Promotion {
   id: string;
   title: string;
@@ -268,10 +242,13 @@ export interface Promotion {
   validUntil: string; // ISO Date string
   image?: string;
   categories?: string[];
-  products?: string[];
+  platos?: string[];
   isActive: boolean;
 }
 
+/**
+ * Interfaz para banners
+ */
 export interface Banner {
   id: string;
   title: string;
@@ -286,8 +263,7 @@ export interface Banner {
   priority: number;
 }
 
-
-// ===== TIPOS ESPECÍFICOS DE PRISMA (ACTUALIZADOS) =====
+// ===== TIPOS ESPECÍFICOS DE PRISMA (ACTUALIZADOS PARA RESTAURANTE) =====
 // Estos tipos representan exactamente lo que viene de la BD
 
 // Tipo para representar un Prisma Decimal que puede ser null
@@ -296,68 +272,104 @@ type PrismaDecimalNullable = string | number | { toString(): string } | null;
 type PrismaDecimalNonNullable = string | number | { toString(): string };
 
 /**
- * Tipo que representa un producto tal como viene de Prisma
+ * Tipo que representa un plato tal como viene de Prisma
  */
-export type DBProduct = {
+export type DBPlato = {
   id: number;
   nombre: string;
   slug: string;
   descripcion: string;
   descripcionCorta?: string | null;
-  especificacionesTecnicas?: string | null;
-  precio: PrismaDecimalNonNullable; // CAMBIO: Antes 'any'
-  precioAnterior?: PrismaDecimalNullable; // CAMBIO: Antes 'any | null'
-  marca?: string | null; // CAMBIO: Asegurar que permita null
-  stock: number;
-  calificacion?: PrismaDecimalNullable; // CAMBIO: Antes 'any | null'
-  numeroReviews: number;
+  precio: PrismaDecimalNonNullable;
+  precioAnterior?: PrismaDecimalNullable;
+  disponible: boolean;
   destacado: boolean;
-  esNuevo: boolean;
-  masVendido: boolean;
   etiquetas: string[];
-  caracteristicas: string[];
-  colores: string[];
-  dimensiones?: string | null;
-  peso?: string | null;
-  garantia?: string | null;
   creadoEn: Date;
   categoriaId?: number | null;
-  categoria?: DBCategory | null;
-  imagenes: DBImage[];
+  categoria?: DBCategoria | null;
+  imagenes: DBImagen[];
 };
 
 /**
  * Tipo que representa una categoría tal como viene de Prisma
  */
-export type DBCategory = {
+export type DBCategoria = {
   id: number;
   nombre: string;
   slug: string;
   descripcion?: string | null;
   imagen?: string | null;
-  icono?: string | null; // Permitir null si es opcional
-  color?: string | null;  // Permitir null si es opcional
-  esPopular: boolean;
+  esPopular?: boolean | null;
   creadoEn: Date;
   _count?: {
-    productos: number;
+    platos: number;
   };
 };
 
 /**
  * Tipo que representa una imagen tal como viene de Prisma
  */
-export type DBImage = {
+export type DBImagen = {
   id: number;
   url: string;
-  alt?: string | null; // Permitir null si es opcional
+  alt?: string | null;
   orden: number;
-  productoId?: number | null;
+  platoId?: number | null;
 };
 
-// Tipo para las acciones del carrito (ya lo tenías bien)
+/**
+ * Tipo para las acciones del carrito
+ */
 export type CartAction =
-  | { type: 'ADD_ITEM'; payload: Product } // El reducer convierte esto a CartItem
+  | { type: 'ADD_ITEM'; payload: Plato }
   | { type: 'REMOVE_ITEM'; payload: { id: string } }
   | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
+  | { type: 'UPDATE_NOTES'; payload: { id: string; notes: string } }
   | { type: 'CLEAR_CART' };
+
+/**
+ * Funciones de utilidad para convertir tipos de DB a tipos de frontend
+ */
+export const convertDBPlatoToPlato = (dbPlato: DBPlato): Plato => ({
+  id: dbPlato.id.toString(),
+  name: dbPlato.nombre,
+  slug: dbPlato.slug,
+  description: dbPlato.descripcion,
+  shortDescription: dbPlato.descripcionCorta || undefined,
+  price: typeof dbPlato.precio === 'object' ? parseFloat(dbPlato.precio.toString()) : Number(dbPlato.precio),
+  originalPrice: dbPlato.precioAnterior 
+    ? (typeof dbPlato.precioAnterior === 'object' 
+        ? parseFloat(dbPlato.precioAnterior.toString()) 
+        : Number(dbPlato.precioAnterior))
+    : undefined,
+  discountPercentage: dbPlato.precioAnterior 
+    ? Math.round(((Number(dbPlato.precioAnterior) - Number(dbPlato.precio)) / Number(dbPlato.precioAnterior)) * 100)
+    : undefined,
+  available: dbPlato.disponible,
+  isFeatured: dbPlato.destacado,
+  tags: dbPlato.etiquetas,
+  category: dbPlato.categoria ? convertDBCategoriaToCategory(dbPlato.categoria) : undefined,
+  categorySlug: dbPlato.categoria?.slug,
+  images: dbPlato.imagenes.map(convertDBImagenToProductImage),
+  createdAt: dbPlato.creadoEn.toISOString(),
+});
+
+export const convertDBCategoriaToCategory = (dbCategoria: DBCategoria): Category => ({
+  id: dbCategoria.id.toString(),
+  name: dbCategoria.nombre,
+  slug: dbCategoria.slug,
+  description: dbCategoria.descripcion || undefined,
+  image: dbCategoria.imagen || undefined,
+  isPopular: dbCategoria.esPopular || false,
+  platosCount: dbCategoria._count?.platos,
+  createdAt: dbCategoria.creadoEn.toISOString(),
+});
+
+export const convertDBImagenToProductImage = (dbImagen: DBImagen): ProductImage => ({
+  id: dbImagen.id.toString(),
+  url: dbImagen.url,
+  alt: dbImagen.alt || undefined,
+  order: dbImagen.orden,
+  isPrimary: dbImagen.orden === 0,
+});

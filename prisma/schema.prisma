@@ -1,93 +1,48 @@
-// Genera el cliente Prisma
 generator client {
   provider = "prisma-client-js"
 }
 
-// Configuración de la base de datos
 datasource db {
-  provider = "postgresql" // o "mysql" según tu BD
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// Modelo de Producto
-model Producto {
-  id          Int       @id @default(autoincrement())
-  nombre      String    @db.VarChar(150)
-  slug        String    @unique @db.VarChar(150)
-  descripcion String    @db.Text
-  descripcionCorta String? @db.VarChar(255)
-  especificacionesTecnicas String? @db.Text
-  precio      Decimal   @db.Decimal(10, 2)
-  precioAnterior Decimal? @db.Decimal(10, 2)
-  marca       String?   @db.VarChar(80)
-  stock       Int       @default(0)
-  calificacion Decimal? @db.Decimal(3, 2)
-  numeroReviews Int     @default(0)
-  destacado   Boolean   @default(false)
-  esNuevo     Boolean   @default(false)
-  masVendido  Boolean   @default(false)
-  etiquetas   String[]
-  caracteristicas String[]
-  colores     String[]
-  dimensiones String?   @db.VarChar(50)
-  peso        String?   @db.VarChar(20)
-  garantia    String?   @db.VarChar(50)
-  creadoEn    DateTime  @default(now()) @map("creado_en")
-  
-  // Relaciones
-  categoria   Categoria? @relation(fields: [categoriaId], references: [id])
-  categoriaId Int?
-  imagenes    Imagen[]
-  
-  // Índices
-  @@index([slug])
-  @@index([categoriaId])
-  @@index([destacado])
-  @@index([esNuevo])
-  @@index([masVendido])
-  
-  // Mapeo a nombre de tabla
-  @@map("productos")
-}
-
-// Modelo de Categoría
 model Categoria {
-  id          Int       @id @default(autoincrement())
-  nombre      String    @db.VarChar(100)
-  slug        String    @unique @db.VarChar(100)
-  descripcion String?   @db.Text
-  imagen      String?   @db.VarChar(255)
-  icono       String?   @db.VarChar(255)
-  color       String?   @db.VarChar(20)
-  esPopular   Boolean   @default(false)
-  creadoEn    DateTime  @default(now()) @map("creado_en")
-  
-  // Relaciones
-  productos   Producto[]
-  
-  // Índices
-  @@index([slug])
-  @@index([esPopular])
-  
-  // Mapeo a nombre de tabla
+  id         Int      @id @default(autoincrement())
+  nombre     String
+  slug       String   @unique
+  descripcion String?
+  imagen     String?
+  esPopular  Boolean?  @default(false)
+  creadoEn   DateTime @default(now())
+  platos     Plato[]
   @@map("categorias")
 }
 
-// Modelo de Imagen
+model Plato {
+  id               Int       @id @default(autoincrement())
+  nombre           String
+  slug             String   @unique
+  descripcion      String
+  descripcionCorta String?
+  precio           Decimal  @db.Decimal(10, 2)
+  precioAnterior   Decimal? @db.Decimal(10, 2)
+  disponible       Boolean   @default(true)
+  destacado        Boolean   @default(false)
+  etiquetas        String[]
+  creadoEn         DateTime  @default(now())
+  categoriaId Int?
+  categoria   Categoria? @relation(fields: [categoriaId], references: [id])
+  imagenes    Imagen[]
+  @@map("platos")
+}
+
 model Imagen {
-  id         Int      @id @default(autoincrement())
-  url        String   @db.VarChar(255)
-  alt        String?  @db.VarChar(150)
-  orden      Int      @default(0)
-  
-  // Relaciones
-  producto   Producto? @relation(fields: [productoId], references: [id])
-  productoId Int?
-  
-  // Índices
-  @@index([productoId])
-  @@index([orden])
-  
-  // Mapeo a nombre de tabla
+  id       Int     @id @default(autoincrement())
+  url      String
+  alt      String?
+  orden    Int     @default(0)
+  platoId  Int?
+  plato    Plato?  @relation(fields: [platoId], references: [id])
   @@map("imagenes")
 }

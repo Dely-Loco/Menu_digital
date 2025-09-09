@@ -97,10 +97,9 @@ export default function WhatsAppButton({
               <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
                 <MessageCircle className="w-4 h-4 text-white" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">¿Necesitas ayuda?</p>
-                <p className="text-xs text-gray-600">Chatea con nosotros</p>
-              </div>
+              <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg whitespace-nowrap">
+          ¡Pide a domicilio! 🍽️
+        </div>
             </div>
           </div>
           {/* Flecha */}

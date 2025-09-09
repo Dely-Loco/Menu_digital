@@ -416,6 +416,8 @@ export const blogPosts: BlogPost[] = [
   },
 ];
 
+
+
 /* ========================================
    FUNCIONES HELPER - NO MODIFICAR
    ========================================

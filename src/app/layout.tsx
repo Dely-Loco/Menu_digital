@@ -7,6 +7,7 @@ import Footer from '@/components/layout/footer';
 import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from '@/context/CartContext';
 import WhatsAppButton from '@/components/ui/whatsapp-button';
+import PromoModal from "@/components/ui/PromoModal"; // ✅ tu modal real
 
 const inter = Inter({
   subsets: ['latin'],
@@ -30,8 +31,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   // Configuración de WhatsApp
-  const whatsappNumber = "573246789589"; // Reemplaza con tu número real
-  const whatsappMessage = "¡Hola Houzze Tec! Estoy interesado/a en conocer más sobre sus productos tecnológicos. ¿Pueden darme más información? ¡Gracias!";
+  const whatsappNumber = "573014056704"; // Reemplaza con tu número real
+  const whatsappMessage = "¡Hola! Me interesa hacer un pedido, ¿pueden ayudarme?";
 
   return (
     <html lang="es">
@@ -51,6 +52,9 @@ export default function RootLayout({
             phoneNumber={whatsappNumber}
             message={whatsappMessage}
           />
+
+          {/* MODAL DE PROMOCIÓN */}
+          <PromoModal /> 
         </CartProvider>
       </body>
     </html>
