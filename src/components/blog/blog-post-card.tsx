@@ -23,7 +23,7 @@ export default function BlogPostCard({ post }: BlogPostCardProps) {
               width={400}
               height={225}
               className="object-cover w-full h-full"
-              data-ai-hint={post.dataAiHint || 'blog post image'}
+              data-ai-hint="blog post image"
             />
           </CardHeader>
         </Link>

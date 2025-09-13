@@ -1,12 +1,46 @@
 // scripts/seed.ts
 import { PrismaClient } from '@prisma/client';
-// Asumo que tus mock-data exportan categories y products con la estructura de tus tipos de app
-// (Product, Category, donde Product tiene images: ProductImage[])
-import { categories as mockCategories, products as mockProducts } from "@/data/mock-data"; 
-import type { Product as AppProduct, ProductImage as AppProductImage, Category as AppCategory } from '@/types';
+// Import from your restaurant mock data (you'll need to create this)
+// import { categories as mockCategories, platos as mockPlatos } from "@/data/restaurant-mock-data"; 
 
+// For now, let's use correct types from your existing types file
+import type { Plato, ProductImage, Category } from '@/types';
 
 const prisma = new PrismaClient();
+
+// Temporary mock data for restaurant - you can replace this with your actual restaurant data
+const mockCategories: Category[] = [
+  {
+    id: '1',
+    name: 'Platos Principales',
+    slug: 'platos-principales',
+    description: 'Deliciosos platos principales de la casa',
+    isPopular: true,
+  },
+  {
+    id: '2', 
+    name: 'Bebidas',
+    slug: 'bebidas',
+    description: 'Refrescantes bebidas naturales',
+    isPopular: true,
+  }
+];
+
+const mockPlatos: Plato[] = [
+  {
+    id: '1',
+    name: 'Bandeja Paisa',
+    slug: 'bandeja-paisa',
+    description: 'Tradicional bandeja paisa con frijoles, arroz, carne, chicharrón y más',
+    shortDescription: 'Plato típico antioqueño completo',
+    price: 25000,
+    available: true,
+    isFeatured: true,
+    tags: ['tradicional', 'completo'],
+    images: [],
+    categorySlug: 'platos-principales'
+  }
+];
 
 async function main() {
   console.log('🌱 Iniciando carga de datos...');
@@ -15,43 +49,35 @@ async function main() {
     console.log('🧹 Limpiando datos existentes...');
     await prisma.$transaction([
       prisma.imagen.deleteMany(),
-      prisma.producto.deleteMany(),
+      prisma.plato.deleteMany(),
       prisma.categoria.deleteMany(),
     ]);
 
     console.log('📂 Creando categorías...');
-    // Asegúrate que 'mockCategories' tenga la estructura que espera Prisma Categoria o mapea los campos
     const createdCategories = await prisma.$transaction(
       mockCategories.map(category => 
         prisma.categoria.create({
           data: {
-            // Mapeo de campos de tu AppCategory a PrismaCategoria
             nombre: category.name,
             slug: category.slug,
             descripcion: category.description,
-            imagen: category.image,
-            icono: category.icon,
-            color: category.color,
             esPopular: category.isPopular,
-            // creadoEn se pone por defecto con @default(now()) en el schema
           }
         })
       )
     );
     console.log(`✅ ${createdCategories.length} categorías creadas.`);
 
-    console.log('🛍️ Creando productos...');
-    let createdProductsCount = 0;
-    let skippedProductsCount = 0;
+    console.log('🍽️ Creando platos...');
+    let createdPlatosCount = 0;
+    let skippedPlatosCount = 0;
 
-    for (const productData of mockProducts) { // productData es de tipo AppProduct
-      const categoriaSlug = typeof productData.category === 'string' 
-                            ? productData.category // Esto era de un mock antiguo, ahora productData.category es un objeto
-                            : productData.category?.slug || productData.categorySlug; // Usa categorySlug o category.slug
+    for (const platoData of mockPlatos) {
+      const categoriaSlug = platoData.categorySlug;
 
       if (!categoriaSlug) {
-        console.log(`⚠️ Categoría o slug de categoría no definido para "${productData.name}". Omitiendo.`);
-        skippedProductsCount++;
+        console.log(`⚠️ Categoría no definida para "${platoData.name}". Omitiendo.`);
+        skippedPlatosCount++;
         continue;
       }
       
@@ -60,70 +86,58 @@ async function main() {
       });
 
       if (!categoriaDB) {
-        console.log(`⚠️ Categoría con slug "${categoriaSlug}" no encontrada para el producto "${productData.name}". Omitiendo.`);
-        skippedProductsCount++;
+        console.log(`⚠️ Categoría con slug "${categoriaSlug}" no encontrada para el plato "${platoData.name}". Omitiendo.`);
+        skippedPlatosCount++;
         continue;
       }
 
       await prisma.$transaction(async (tx) => {
-        const nuevoProducto = await tx.producto.create({
+        const nuevoPlato = await tx.plato.create({
           data: {
-            nombre: productData.name,
-            slug: productData.slug,
-            descripcion: productData.description,
-            descripcionCorta: productData.shortDescription,
-            especificacionesTecnicas: productData.technicalSpec,
-            precio: productData.price, // Prisma maneja la conversión de number a Decimal
-            precioAnterior: productData.originalPrice,
-            marca: productData.brand,
-            stock: productData.stock,
-            calificacion: productData.rating,        // Mapeo de app.rating a prisma.calificacion
-            numeroReviews: productData.reviewsCount,
-            destacado: productData.isFeatured,
-            esNuevo: productData.isNew,
-            masVendido: productData.isBestseller,
-            etiquetas: productData.tags,           // Mapeo de app.tags a prisma.etiquetas
-            caracteristicas: productData.features,   // Mapeo de app.features a prisma.caracteristicas
-            colores: productData.colors,           // Mapeo de app.colors a prisma.colores
-            dimensiones: productData.dimensions,
-            peso: productData.weight,
-            garantia: productData.warranty,
-            // creadoEn se pone por defecto
+            nombre: platoData.name,
+            slug: platoData.slug,
+            descripcion: platoData.description,
+            descripcionCorta: platoData.shortDescription,
+            precio: platoData.price,
+            precioAnterior: platoData.originalPrice,
+            disponible: platoData.available,
+            destacado: platoData.isFeatured,
+            etiquetas: platoData.tags,
             categoriaId: categoriaDB.id,
           }
         });
 
         // Crear imágenes asociadas
-        if (productData.images && productData.images.length > 0) {
+        if (platoData.images && platoData.images.length > 0) {
           await tx.imagen.createMany({
-            data: productData.images.map((imageObj: AppProductImage) => ({ // imageObj es de tipo ProductImage
-              url: imageObj.url,         // <--- CORRECCIÓN AQUÍ
-              alt: imageObj.alt || `${productData.name} - Imagen ${imageObj.order + 1}`, // Usa el alt de imageObj
-              orden: imageObj.order,       // Usa el order de imageObj
-              productoId: nuevoProducto.id,
+            data: platoData.images.map((imageObj: ProductImage) => ({
+              url: imageObj.url,
+              alt: imageObj.alt || `${platoData.name} - Imagen ${imageObj.order + 1}`,
+              orden: imageObj.order,
+              platoId: nuevoPlato.id,
             }))
           });
         }
-        createdProductsCount++;
-        console.log(`✅ Producto creado: ${productData.name}`);
+        createdPlatosCount++;
+        console.log(`✅ Plato creado: ${platoData.name}`);
       });
     }
 
     console.log('🎉 ¡Carga de datos completada!');
-    const [totalCategorias, totalProductos, totalImagenes] = await Promise.all([
+    const [totalCategorias, totalPlatos, totalImagenes] = await Promise.all([
       prisma.categoria.count(),
-      prisma.producto.count(),
+      prisma.plato.count(),
       prisma.imagen.count(),
     ]);
 
     console.log(`\n📊 Estadísticas:`);
     console.log(`   Categorías: ${totalCategorias}`);
-    console.log(`   Productos: ${totalProductos} (${skippedProductsCount} omitidos)`);
+    console.log(`   Platos: ${totalPlatos} (${skippedPlatosCount} omitidos)`);
     console.log(`   Imágenes: ${totalImagenes}`);
 
   } catch (error) {
     console.error('❌ Error durante la carga de datos inicial (seed):', error);
-    throw error; // Re-lanza el error para que el proceso falle si hay un problema
+    throw error;
   }
 }
 

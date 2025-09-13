@@ -28,9 +28,10 @@ import {
 export async function generateMetadata({ 
   params 
 }: { 
-  params: { id: string } 
+  params: Promise<{ id: string }> 
 }): Promise<Metadata> {
-  const plato = await getPlatoBySlug(params.id);
+  const { id } = await params;
+  const plato = await getPlatoBySlug(id);
   
   if (!plato) {
     return {
@@ -81,9 +82,10 @@ export async function generateStaticParams() {
 export default async function PlatoDetailPage({ 
   params 
 }: { 
-  params: { id: string } 
+  params: Promise<{ id: string }> 
 }) {
-  const plato = await getPlatoBySlug(params.id);
+  const { id } = await params;
+  const plato = await getPlatoBySlug(id);
   
   if (!plato) {
     notFound();

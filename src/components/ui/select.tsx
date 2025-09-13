@@ -215,7 +215,7 @@ const SelectSeparator = React.forwardRef<
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
 
 // ===== COMPONENTE DE EJEMPLO AVANZADO =====
-// Nuevo: Select con funcionalidades extras
+// CORRECCIÓN: Cambiar el tipo de componente para evitar el error de forwardRef
 interface SelectWithSearchProps {
   placeholder?: string;
   searchPlaceholder?: string;
@@ -231,10 +231,8 @@ interface SelectWithSearchProps {
   className?: string;
 }
 
-const SelectWithSearch = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Root>,
-  SelectWithSearchProps
->(({ 
+// CORRECCIÓN: Convertir a componente funcional normal en lugar de forwardRef
+const SelectWithSearch: React.FC<SelectWithSearchProps> = ({ 
   placeholder = "Seleccionar opción...",
   searchPlaceholder = "Buscar...",
   emptyText = "No hay opciones disponibles",
@@ -243,7 +241,7 @@ const SelectWithSearch = React.forwardRef<
   onValueChange,
   className,
   ...props
-},) => {
+}) => {
   const [searchValue, setSearchValue] = React.useState("");
   
   // Filtrar opciones basado en búsqueda
@@ -297,7 +295,7 @@ const SelectWithSearch = React.forwardRef<
       </SelectContent>
     </Select>
   );
-});
+};
 SelectWithSearch.displayName = "SelectWithSearch";
 
 // ===== EXPORTS =====

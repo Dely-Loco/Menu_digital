@@ -7,9 +7,10 @@ type SheetProps = {
   // Puedes agregar otras props como side ("left", "right") o tamaño si quieres
 };
 
+// CORRECCIÓN: Tipo más flexible que incluye children y onClick
 type AsChildProps = {
   asChild?: boolean;
-  children: React.ReactElement;
+  children: React.ReactElement<React.HTMLAttributes<HTMLElement>>;
 };
 
 /**
@@ -67,7 +68,7 @@ export function SheetTrigger({ asChild = false, children }: AsChildProps) {
 }
 
 /**
- * SheetClose igual puede pasar el onClick para cerrar al hijo si asChild=true
+ * CORRECCIÓN: SheetClose sin usar 'any' - solución final
  */
 export function SheetClose({
   asChild = false,
@@ -75,12 +76,24 @@ export function SheetClose({
   onClose,
 }: AsChildProps & { onClose?: () => void }) {
   if (asChild) {
-    return React.cloneElement(children, {
-      onClick: (event: React.MouseEvent) => {
-        if (children.props.onClick) children.props.onClick(event);
+    // CORRECCIÓN: Crear props con manejo específico del onClick
+    const newProps: React.HTMLAttributes<HTMLElement> = {
+      ...children.props,
+      onClick: (event) => {
+        // Ejecutar onClick original si existe, usando type assertion específica
+        const originalOnClick = children.props.onClick as 
+          | ((event: React.MouseEvent<HTMLElement>) => void) 
+          | undefined;
+        
+        if (originalOnClick) {
+          originalOnClick(event);
+        }
+        // Ejecutar función de cierre
         onClose?.();
       },
-    });
+    };
+
+    return React.createElement(children.type, newProps, children.props.children);
   }
   return <button onClick={onClose}>{children}</button>;
 }

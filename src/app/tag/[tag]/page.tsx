@@ -2,19 +2,20 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-// ✅ Usando exactamente el mismo patrón que products/[id]/page.tsx
+// Usando exactamente el mismo patrón que menu/[id]/page.tsx
 interface TagPageParams {
   params: Promise<{
     tag: string;
   }>;
 }
 
-// ✅ CORREGIDO: await params (mismo patrón que productos)
+// CORREGIDO: await params (mismo patrón que platos)
 export default async function TagPage({ params }: TagPageParams) {
   const resolvedParams = await params; // <- Await params primero
   const tag = decodeURIComponent(resolvedParams.tag);
 
-  const productos = await prisma.producto.findMany({
+  // Cambiado de 'producto' a 'plato' para coincidir con tu esquema
+  const platos = await prisma.plato.findMany({
     where: {
       etiquetas: {
         has: tag,
@@ -25,18 +26,18 @@ export default async function TagPage({ params }: TagPageParams) {
     },
   });
 
-  if (!productos || productos.length === 0) {
+  if (!platos || platos.length === 0) {
     notFound();
   }
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">Productos con la etiqueta: #{tag}</h1>
+      <h1 className="text-3xl font-bold mb-6">Platos con la etiqueta: #{tag}</h1>
       <ul className="space-y-4">
-        {productos.map((producto) => (
-          <li key={producto.id}>
-            <Link href={`/products/${producto.slug}`} className="text-blue-600 underline">
-              {producto.nombre}
+        {platos.map((plato) => (
+          <li key={plato.id}>
+            <Link href={`/menu/${plato.slug}`} className="text-blue-600 underline">
+              {plato.nombre}
             </Link>
           </li>
         ))}
@@ -45,13 +46,13 @@ export default async function TagPage({ params }: TagPageParams) {
   );
 }
 
-// ✅ OPCIONAL: generateMetadata siguiendo el mismo patrón
+// OPCIONAL: generateMetadata siguiendo el mismo patrón
 export async function generateMetadata({ params }: TagPageParams) {
   const resolvedParams = await params;
   const tag = decodeURIComponent(resolvedParams.tag);
 
   return {
-    title: `Productos con etiqueta: ${tag} | Houzze Tec`,
-    description: `Encuentra todos los productos relacionados con ${tag}`,
+    title: `Platos con etiqueta: ${tag} | Dely Loco`,
+    description: `Encuentra todos los platos relacionados con ${tag}`,
   };
 }

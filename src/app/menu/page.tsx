@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import type { Plato } from "@/types";
-import ProductCard from "@/components/shared/product-card";
+import ProductCard from "@/components/shared/plato-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -96,8 +96,8 @@ function MenuPageContent() {
         router.replace(`${pathname}${queryString ? `?${queryString}` : ''}`, { scroll: false });
     }
     
-    // Petición a la API
-    fetch(`/api/products?${queryString}`)
+    // Petición a la API - CORREGIDO: cambiar de /api/products a /api/platos
+    fetch(`/api/platos?${queryString}`)
       .then(async (res) => { 
         if (!res.ok) { 
           throw new Error(`Error del servidor: ${res.status}`); 
@@ -105,8 +105,8 @@ function MenuPageContent() {
         return res.json(); 
       })
       .then(data => {
-        // Adaptar respuesta de la API
-        const platosData = data.products || data || [];
+        // Adaptar respuesta de la API - CORREGIDO: cambiar products por platos
+        const platosData = data.platos || data || [];
         setPlatos(Array.isArray(platosData) ? platosData : []);
       })
       .catch(err => { 
@@ -374,7 +374,7 @@ function MenuPageContent() {
                 platos.map((plato, index) => (
                   <ProductCard 
                     key={plato.id} 
-                    product={plato} 
+                    plato={plato}
                     priority={index < 4} // Prioridad para las primeras 4 imágenes
                   />
                 ))

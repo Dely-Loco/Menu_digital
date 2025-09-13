@@ -1,14 +1,14 @@
-// src/components/home/featured-products-slider.tsx
+// src/components/home/featured-platos-slider.tsx
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Product } from '@/types';
+import type { Plato } from '@/types';
 import { Button } from '@/components/ui/button';
-import ProductCard from '@/components/shared/product-card';
+import PlatoCard from '@/components/shared/plato-card';
 
-interface FeaturedProductsSliderProps {
-  products?: Product[];
+interface FeaturedPlatosSliderProps {
+  platos?: Plato[];
   itemsPerView?: {
     desktop: number;
     tablet: number;
@@ -20,8 +20,8 @@ interface FeaturedProductsSliderProps {
   className?: string;
 }
 
-const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
-  products: propProducts = [],
+const FeaturedPlatosSlider: React.FC<FeaturedPlatosSliderProps> = ({
+  platos: propPlatos = [],
   itemsPerView = { desktop: 4, tablet: 2, mobile: 1 },
   autoPlayInterval = 5000,
   showControls = true,
@@ -42,15 +42,15 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
   const [touchEnd, setTouchEnd] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
-  // Memoizar productos para evitar re-renders innecesarios
-  const productsToDisplay = useMemo(() => {
-    return Array.isArray(propProducts) ? propProducts : [];
-  }, [propProducts]);
+  // Memoizar platos para evitar re-renders innecesarios
+  const platosToDisplay = useMemo(() => {
+    return Array.isArray(propPlatos) ? propPlatos : [];
+  }, [propPlatos]);
 
   // Memoizar el cálculo del maxIndex
   const maxIndex = useMemo(() => {
-    return Math.max(0, productsToDisplay.length - currentItemsPerView);
-  }, [productsToDisplay.length, currentItemsPerView]);
+    return Math.max(0, platosToDisplay.length - currentItemsPerView);
+  }, [platosToDisplay.length, currentItemsPerView]);
 
   // Función para determinar items por vista basado en el ancho de pantalla
   const getItemsPerView = useCallback(() => {
@@ -74,7 +74,7 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
         if (newItemsPerView !== currentItemsPerView) {
           setCurrentItemsPerView(newItemsPerView);
           // Ajustar índice si es necesario
-          const newMaxIndex = Math.max(0, productsToDisplay.length - newItemsPerView);
+          const newMaxIndex = Math.max(0, platosToDisplay.length - newItemsPerView);
           setCurrentIndex(prev => Math.min(prev, newMaxIndex));
         }
       }, 100);
@@ -88,7 +88,7 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
       window.removeEventListener('resize', handleResize);
       clearTimeout(timeoutId);
     };
-  }, [getItemsPerView, currentItemsPerView, productsToDisplay.length]);
+  }, [getItemsPerView, currentItemsPerView, platosToDisplay.length]);
 
   // Limpiar autoplay cuando se desmonta el componente
   useEffect(() => {
@@ -108,7 +108,7 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
     }
 
     // No iniciar autoplay si no es necesario
-    if (!isAutoPlaying || productsToDisplay.length <= currentItemsPerView || maxIndex === 0) {
+    if (!isAutoPlaying || platosToDisplay.length <= currentItemsPerView || maxIndex === 0) {
       return;
     }
 
@@ -125,7 +125,7 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
         autoPlayRef.current = null;
       }
     };
-  }, [isAutoPlaying, maxIndex, autoPlayInterval, productsToDisplay.length, currentItemsPerView]);
+  }, [isAutoPlaying, maxIndex, autoPlayInterval, platosToDisplay.length, currentItemsPerView]);
 
   // Handlers con mejor gestión de transiciones
   const handlePrevious = useCallback(() => {
@@ -252,8 +252,8 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
     };
   }, [isDragging]);
 
-  // Early return si no hay productos
-  if (!productsToDisplay || productsToDisplay.length === 0) {
+  // Early return si no hay platos
+  if (!platosToDisplay || platosToDisplay.length === 0) {
     return (
       <div className={`text-center py-12 ${className}`}>
         <div className="animate-pulse">
@@ -296,9 +296,9 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
             userSelect: 'none' // Previene selección de texto durante drag
           }}
         >
-          {productsToDisplay.map((product, index) => (
+          {platosToDisplay.map((plato, index) => (
             <div
-              key={`${product.id}-${index}`} // Key más estable
+              key={`${plato.id}-${index}`} // Key más estable
               className="flex-shrink-0 px-1 sm:px-2 md:px-3"
               style={{ 
                 width: `${100 / currentItemsPerView}%`,
@@ -306,7 +306,7 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
               }}
             >
               <div className="h-full">
-                <ProductCard product={product} />
+                <PlatoCard plato={plato} />
               </div>
             </div>
           ))}
@@ -314,7 +314,7 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
       </div>
 
       {/* Controles de Navegación */}
-      {showControls && productsToDisplay.length > currentItemsPerView && (
+      {showControls && platosToDisplay.length > currentItemsPerView && (
         <>
           <Button
             onClick={handlePrevious}
@@ -322,7 +322,7 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
             size="icon"
             disabled={isTransitioning}
             className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 z-20 transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            aria-label="Producto anterior"
+            aria-label="Plato anterior"
           >
             <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 text-gray-700" />
           </Button>
@@ -333,7 +333,7 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
             size="icon"
             disabled={isTransitioning}
             className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 z-20 transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            aria-label="Siguiente producto"
+            aria-label="Siguiente plato"
           >
             <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-gray-700" />
           </Button>
@@ -341,7 +341,7 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
       )}
 
       {/* Indicadores de Puntos */}
-      {showDots && productsToDisplay.length > currentItemsPerView && maxIndex > 0 && (
+      {showDots && platosToDisplay.length > currentItemsPerView && maxIndex > 0 && (
         <div className="flex justify-center mt-6 space-x-2">
           {Array.from({ length: maxIndex + 1 }).map((_, index) => (
             <button
@@ -362,4 +362,4 @@ const FeaturedProductsSlider: React.FC<FeaturedProductsSliderProps> = ({
   );
 };
 
-export default FeaturedProductsSlider;
+export default FeaturedPlatosSlider;

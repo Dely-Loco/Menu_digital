@@ -8,8 +8,6 @@ import type { Category } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
-// Cambiar la importación
-
 
 interface CategorySectionProps {
   categories: Category[];
@@ -42,6 +40,8 @@ export default function CategorySection({
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 lg:gap-6 p-4 md:p-6">
         {displayCategories.map((category, index) => {
           const isHovered = hoveredId === category.id;
+          // Color por defecto para restaurante
+          const categoryColor = '#ff6b35'; // Color naranja para restaurante
           
           return (
             <motion.div
@@ -61,13 +61,13 @@ export default function CategorySection({
               onMouseEnter={() => setHoveredId(category.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
-              <Link href={`/products?category=${category.slug}`} className="block">
+              <Link href={`/menu?category=${category.slug}`} className="block">
                 <Card className="relative overflow-hidden h-full border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/80 backdrop-blur-sm">
                   {/* Animated background gradient */}
                   <motion.div 
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                     style={{
-                      background: `linear-gradient(135deg, ${category.color || '#667eea'}20, ${category.color || '#764ba2'}40)`
+                      background: `linear-gradient(135deg, ${categoryColor}20, ${categoryColor}40)`
                     }}
                   />
                   
@@ -80,26 +80,11 @@ export default function CategorySection({
                         fill
                         sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
                         className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-2"
-                        data-ai-hint={category.dataAiHint || category.name.toLowerCase()}
+                        data-ai-hint={category.name.toLowerCase()}
                       />
                       
                       {/* Overlay gradient */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      
-                      {/* Floating icon with animation */}
-                      <AnimatePresence>
-                        {category.icon && isHovered && (
-                          <motion.div
-                            initial={{ scale: 0, rotate: -180 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            exit={{ scale: 0, rotate: 180 }}
-                            transition={{ type: "spring", damping: 15 }}
-                            className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg"
-                          >
-                            <span className="text-lg">{category.icon}</span>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
                       
                       {/* Popular badge */}
                       {category.isPopular && (
@@ -126,21 +111,21 @@ export default function CategorySection({
                     <motion.h3 
                       className="text-sm md:text-base font-bold transition-all duration-300 group-hover:scale-105"
                       style={{
-                        color: isHovered ? (category.color || '#667eea') : 'inherit'
+                        color: isHovered ? categoryColor : 'inherit'
                       }}
                     >
                       {category.name}
                     </motion.h3>
                     
-                    {/* Products count with animation */}
-                    {category.productsCount && (
+                    {/* Platos count with animation */}
+                    {category.platosCount && (
                       <motion.p 
                         className="text-xs text-gray-500 group-hover:text-gray-700 transition-colors"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: index * 0.1 + 0.5 }}
                       >
-                        {category.productsCount} products
+                        {category.platosCount} platos
                       </motion.p>
                     )}
                     
@@ -164,7 +149,7 @@ export default function CategorySection({
                   <motion.div
                     className="absolute bottom-0 left-0 h-1 bg-gradient-to-r transition-all duration-500"
                     style={{
-                      background: `linear-gradient(90deg, ${category.color || '#667eea'}, ${category.color || '#764ba2'})`
+                      background: `linear-gradient(90deg, ${categoryColor}, #ff4757)`
                     }}
                     initial={{ width: '0%' }}
                     animate={{ width: isHovered ? '100%' : '0%' }}
@@ -174,7 +159,7 @@ export default function CategorySection({
                   <motion.div
                     className="absolute inset-0 border-2 border-transparent rounded-lg"
                     animate={{
-                      borderColor: isHovered ? (category.color || '#667eea') + '40' : 'transparent'
+                      borderColor: isHovered ? categoryColor + '40' : 'transparent'
                     }}
                     transition={{ duration: 0.3 }}
                   />
@@ -197,9 +182,9 @@ export default function CategorySection({
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-blue-700 hover:to-purple-700"
+              className="px-8 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:from-orange-700 hover:to-red-700"
             >
-              View All Categories
+              Ver Todas las Categorías
               <motion.span
                 className="inline-block ml-2"
                 animate={{ x: [0, 5, 0] }}
@@ -217,7 +202,7 @@ export default function CategorySection({
         {[...Array(6)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full opacity-30"
+            className="absolute w-2 h-2 bg-gradient-to-r from-orange-400 to-red-400 rounded-full opacity-30"
             animate={{
               x: [0, 100, 0],
               y: [0, -100, 0],

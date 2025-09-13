@@ -1,4 +1,4 @@
-// src/components/shared/product-card.tsx
+// src/components/shared/plato-card.tsx
 'use client';
 
 import Image from 'next/image';
@@ -9,8 +9,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, ChefHat, Flame, Leaf } from 'lucide-react';
 
-interface ProductCardProps {
-  product: Plato;
+interface PlatoCardProps {
+  plato: Plato;
   priority?: boolean;
 }
 
@@ -32,16 +32,16 @@ const getTagIcon = (tag: string) => {
   return null;
 };
 
-export default function ProductCard({ product, priority = false }: ProductCardProps) {
+export default function PlatoCard({ plato, priority = false }: PlatoCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const discount = product.originalPrice && product.price < product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+  const discount = plato.originalPrice && plato.price < plato.originalPrice
+    ? Math.round(((plato.originalPrice - plato.price) / plato.originalPrice) * 100)
     : 0;
 
   return (
-    <Link href={`/menu/${product.slug}`} className="block group">
+    <Link href={`/menu/${plato.slug}`} className="block group">
       <Card 
         className="overflow-hidden bg-white border-0 shadow-md group-hover:shadow-2xl transition-all duration-500 rounded-3xl h-full group-hover:-translate-y-1"
         onMouseEnter={() => setIsHovered(true)}
@@ -50,8 +50,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         {/* Imagen del plato */}
         <div className="relative aspect-[4/3] overflow-hidden rounded-t-3xl bg-gradient-to-br from-orange-50 to-red-50">
           <Image
-            src={product.images[0]?.url || '/placeholder-food.jpg'}
-            alt={product.name}
+            src={plato.images[0]?.url || '/placeholder-food.jpg'}
+            alt={plato.name}
             fill
             className={`object-cover transition-all duration-700 group-hover:scale-110 ${
               imageLoaded ? 'opacity-100' : 'opacity-0'
@@ -74,14 +74,14 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             )}
             
             {/* Destacado */}
-            {product.isFeatured && (
+            {plato.isFeatured && (
               <Badge className="bg-orange-500 hover:bg-orange-600 text-white font-medium shadow-lg">
                 Especial del Chef
               </Badge>
             )}
             
             {/* No disponible */}
-            {!product.available && (
+            {!plato.available && (
               <Badge className="bg-gray-500 text-white font-medium shadow-lg">
                 Agotado
               </Badge>
@@ -89,9 +89,9 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           </div>
 
           {/* Etiquetas de ingredientes */}
-          {product.tags && product.tags.length > 0 && (
+          {plato.tags && plato.tags.length > 0 && (
             <div className="absolute top-4 right-4 flex flex-col gap-1">
-              {product.tags.slice(0, 2).map((tag) => {
+              {plato.tags.slice(0, 2).map((tag) => {
                 const icon = getTagIcon(tag);
                 if (!icon) return null;
                 
@@ -112,21 +112,21 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         {/* Contenido */}
         <CardContent className="p-6 space-y-3">
           {/* Categoría */}
-          {product.category && (
+          {plato.category && (
             <p className="text-xs uppercase tracking-wider text-orange-500 font-medium">
-              {product.category.name}
+              {plato.category.name}
             </p>
           )}
 
           {/* Nombre del plato */}
           <h3 className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors duration-300 line-clamp-2 leading-tight">
-            {product.name}
+            {plato.name}
           </h3>
 
           {/* Descripción */}
-          {product.shortDescription && (
+          {plato.shortDescription && (
             <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
-              {product.shortDescription}
+              {plato.shortDescription}
             </p>
           )}
 
@@ -134,15 +134,15 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           <div className="flex items-center justify-between pt-2">
             <div className="space-y-1">
               {/* Precio original tachado */}
-              {product.originalPrice && product.originalPrice > product.price && (
+              {plato.originalPrice && plato.originalPrice > plato.price && (
                 <p className="text-sm text-gray-400 line-through">
-                  {formatCurrencyCOP(product.originalPrice)}
+                  {formatCurrencyCOP(plato.originalPrice)}
                 </p>
               )}
               
               {/* Precio actual */}
               <p className="text-2xl font-bold text-gray-900">
-                {formatCurrencyCOP(product.price)}
+                {formatCurrencyCOP(plato.price)}
               </p>
             </div>
 
@@ -155,9 +155,9 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           </div>
 
           {/* Etiquetas de ingredientes en texto */}
-          {product.tags && product.tags.length > 0 && (
+          {plato.tags && plato.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 pt-2">
-              {product.tags.slice(0, 3).map((tag) => (
+              {plato.tags.slice(0, 3).map((tag) => (
                 <Badge 
                   key={tag} 
                   variant="secondary" 
@@ -166,12 +166,12 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                   {tag}
                 </Badge>
               ))}
-              {product.tags.length > 3 && (
+              {plato.tags.length > 3 && (
                 <Badge 
                   variant="secondary" 
                   className="text-xs bg-gray-100 text-gray-600"
                 >
-                  +{product.tags.length - 3} más
+                  +{plato.tags.length - 3} más
                 </Badge>
               )}
             </div>
@@ -179,7 +179,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         </CardContent>
 
         {/* Overlay de no disponible */}
-        {!product.available && (
+        {!plato.available && (
           <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-3xl">
             <div className="text-center space-y-2">
               <p className="text-lg font-bold text-gray-800">No Disponible</p>
