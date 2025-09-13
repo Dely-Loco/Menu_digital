@@ -28,9 +28,9 @@ import {
 export async function generateMetadata({ 
   params 
 }: { 
-  params: Promise<{ id: string }> 
+  params: { id: string } 
 }): Promise<Metadata> {
-  const { id } = await params;
+  const { id } = params;
   const plato = await getPlatoBySlug(id);
   
   if (!plato) {
@@ -82,9 +82,9 @@ export async function generateStaticParams() {
 export default async function PlatoDetailPage({ 
   params 
 }: { 
-  params: Promise<{ id: string }> 
+  params: { id: string } 
 }) {
-  const { id } = await params;
+  const { id } = params;
   const plato = await getPlatoBySlug(id);
   
   if (!plato) {
@@ -150,7 +150,7 @@ export default async function PlatoDetailPage({
           {/* Columna izquierda - Galería de imágenes mejorada */}
           <div className="lg:sticky lg:top-8">
             <div className="space-y-4">
-              {/* Imagen principal con efectos mejorados */}
+              {/* Imagen principal */}
               <div className="group relative aspect-square bg-gradient-to-br from-orange-50 to-red-50 rounded-3xl border-2 border-orange-200 overflow-hidden shadow-xl">
                 {plato.images && plato.images.length > 0 ? (
                   <>
@@ -162,7 +162,6 @@ export default async function PlatoDetailPage({
                       className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
                       priority
                     />
-                    {/* Overlay con información */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <div className="absolute bottom-4 left-4 right-4 text-white">
                         <p className="font-bold text-lg">{plato.name}</p>
@@ -183,7 +182,7 @@ export default async function PlatoDetailPage({
                 )}
               </div>
               
-              {/* Galería de miniaturas mejorada */}
+              {/* Galería de miniaturas */}
               {plato.images && plato.images.length > 1 && (
                 <div className="grid grid-cols-4 gap-3">
                   {plato.images.slice(1, 5).map((image, index) => (
@@ -203,7 +202,7 @@ export default async function PlatoDetailPage({
                 </div>
               )}
 
-              {/* Badge de imagen principal */}
+              {/* Badge de imagen */}
               {plato.images && plato.images.length > 0 && (
                 <div className="text-center">
                   <Badge variant="outline" className="bg-white/80 backdrop-blur-sm">
@@ -217,9 +216,8 @@ export default async function PlatoDetailPage({
           {/* Columna derecha - Información del plato */}
           <div className="space-y-8">
             
-            {/* Header del plato mejorado */}
+            {/* Header del plato */}
             <div>
-              {/* Badges de estado con animaciones */}
               <div className="flex flex-wrap gap-3 mb-6">
                 {plato.isFeatured && (
                   <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg animate-pulse">
@@ -244,12 +242,10 @@ export default async function PlatoDetailPage({
                 )}
               </div>
 
-              {/* Nombre del plato con animación */}
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                 {plato.name}
               </h1>
 
-              {/* Descripción corta mejorada */}
               {plato.shortDescription && (
                 <div className="bg-orange-50 p-4 rounded-2xl border border-orange-200 mb-6">
                   <p className="text-xl text-gray-700 leading-relaxed italic">
@@ -258,7 +254,6 @@ export default async function PlatoDetailPage({
                 </div>
               )}
 
-              {/* Categoría con enlace */}
               {plato.category && (
                 <Link 
                   href={`/menu?category=${plato.category.slug}`}
@@ -269,7 +264,7 @@ export default async function PlatoDetailPage({
               )}
             </div>
 
-            {/* Descripción completa - Protagonista principal */}
+            {/* Descripción */}
             <Card className="shadow-lg border-orange-200">
               <CardContent className="p-8">
                 <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
@@ -282,7 +277,6 @@ export default async function PlatoDetailPage({
                   </p>
                 </div>
                 
-                {/* Información adicional sobre el plato */}
                 <div className="mt-6 p-4 bg-orange-50 rounded-xl border border-orange-200">
                   <p className="text-orange-800 text-sm">
                     Cada plato es preparado con ingredientes frescos y recetas tradicionales de la Comuna 13
@@ -291,7 +285,7 @@ export default async function PlatoDetailPage({
               </CardContent>
             </Card>
 
-            {/* Precio discreto pero visible */}
+            {/* Precio */}
             <Card className="border-orange-200 bg-gradient-to-r from-gray-50 to-orange-50">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -332,7 +326,7 @@ export default async function PlatoDetailPage({
               </CardContent>
             </Card>
 
-            {/* Características/Etiquetas mejoradas */}
+            {/* Etiquetas */}
             {plato.tags && plato.tags.length > 0 && (
               <Card className="shadow-lg">
                 <CardContent className="p-8">
@@ -355,7 +349,7 @@ export default async function PlatoDetailPage({
               </Card>
             )}
 
-            {/* Información del restaurante - Datos reales de Dely Loco */}
+            {/* Info restaurante */}
             <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-xl">
               <CardContent className="p-8">
                 <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
@@ -401,7 +395,7 @@ export default async function PlatoDetailPage({
               </CardContent>
             </Card>
 
-            {/* Navegación mejorada */}
+            {/* Navegación */}
             <Card className="shadow-lg">
               <CardContent className="p-8 text-center">
                 <h3 className="text-xl font-bold text-gray-900 mb-6">
